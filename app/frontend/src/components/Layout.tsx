@@ -1,49 +1,74 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, Outlet } from 'react-router-dom';
-import { LayoutDashboard, PlusCircle, Trophy, User, QrCode } from 'lucide-react';
+import { LayoutDashboard, PlusCircle, Trophy, User, QrCode, Moon, Sun } from 'lucide-react';
 
 const Layout: React.FC = () => {
+  const [darkMode, setDarkMode] = useState(() => {
+    const saved = localStorage.getItem('theme');
+    return saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches);
+  });
+
+  useEffect(() => {
+    if (darkMode) {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    }
+  }, [darkMode]);
+
   return (
-    <div className="min-h-screen bg-gray-100 text-gray-900">
-      <nav className="bg-white shadow-md">
+    <div className="min-h-screen bg-gray-100 dark:bg-dcc-dark text-gray-900 dark:text-gray-100 transition-colors duration-200">
+      <nav className="bg-white dark:bg-dcc-card shadow-md border-b dark:border-dcc-system/30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             <div className="flex">
               <div className="flex-shrink-0 flex items-center">
-                <span className="font-bold text-xl text-indigo-600">QuestVault</span>
+                <span className="font-black text-xl text-orange-600 dark:text-dcc-system tracking-wider uppercase">
+                    QuestVault <span className="text-xs align-top opacity-70">SYS</span>
+                </span>
               </div>
               <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
-                <Link to="/" className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                <Link to="/" className="border-transparent text-gray-500 dark:text-gray-300 hover:border-gray-300 dark:hover:border-dcc-system hover:text-gray-700 dark:hover:text-white inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors">
                   <LayoutDashboard className="w-4 h-4 mr-2" />
                   Dashboard
                 </Link>
-                <Link to="/quests/new" className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                <Link to="/quests/new" className="border-transparent text-gray-500 dark:text-gray-300 hover:border-gray-300 dark:hover:border-dcc-system hover:text-gray-700 dark:hover:text-white inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors">
                   <PlusCircle className="w-4 h-4 mr-2" />
                   New Quest
                 </Link>
-                <Link to="/achievements/new" className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                <Link to="/achievements/new" className="border-transparent text-gray-500 dark:text-gray-300 hover:border-gray-300 dark:hover:border-dcc-system hover:text-gray-700 dark:hover:text-white inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors">
                   <Trophy className="w-4 h-4 mr-2" />
                   New Achievement
                 </Link>
-                <Link to="/profile" className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                <Link to="/profile" className="border-transparent text-gray-500 dark:text-gray-300 hover:border-gray-300 dark:hover:border-dcc-system hover:text-gray-700 dark:hover:text-white inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors">
                   <User className="w-4 h-4 mr-2" />
                   Profile
                 </Link>
-                <Link to="/tools" className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                <Link to="/tools" className="border-transparent text-gray-500 dark:text-gray-300 hover:border-gray-300 dark:hover:border-dcc-system hover:text-gray-700 dark:hover:text-white inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors">
                   <QrCode className="w-4 h-4 mr-2" />
                   Tools
                 </Link>
               </div>
             </div>
+            <div className="flex items-center">
+                <button 
+                    onClick={() => setDarkMode(!darkMode)}
+                    className="p-2 rounded-full text-gray-500 dark:text-dcc-system hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none"
+                >
+                    {darkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+                </button>
+            </div>
           </div>
         </div>
         {/* Mobile menu */}
-        <div className="sm:hidden flex justify-around py-2 border-t border-gray-200">
-            <Link to="/" className="p-2 text-gray-500"><LayoutDashboard /></Link>
-            <Link to="/quests/new" className="p-2 text-gray-500"><PlusCircle /></Link>
-            <Link to="/achievements/new" className="p-2 text-gray-500"><Trophy /></Link>
-            <Link to="/profile" className="p-2 text-gray-500"><User /></Link>
-            <Link to="/tools" className="p-2 text-gray-500"><QrCode /></Link>
+        <div className="sm:hidden flex justify-around py-2 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-dcc-card">
+            <Link to="/" className="p-2 text-gray-500 dark:text-gray-400"><LayoutDashboard /></Link>
+            <Link to="/quests/new" className="p-2 text-gray-500 dark:text-gray-400"><PlusCircle /></Link>
+            <Link to="/achievements/new" className="p-2 text-gray-500 dark:text-gray-400"><Trophy /></Link>
+            <Link to="/profile" className="p-2 text-gray-500 dark:text-gray-400"><User /></Link>
+            <Link to="/tools" className="p-2 text-gray-500 dark:text-gray-400"><QrCode /></Link>
         </div>
       </nav>
 

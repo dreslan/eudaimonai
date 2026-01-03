@@ -59,10 +59,10 @@ const NewAchievement: React.FC = () => {
             </h1>
         </div>
 
-        <div className="bg-white shadow-xl rounded-lg p-8 border-t-4 border-yellow-400">
+        <div className="bg-white dark:bg-dcc-card shadow-xl rounded-lg p-8 border-t-4 border-yellow-400 dark:border-dcc-gold">
             <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
-                <label className="block text-sm font-medium text-gray-700">Title</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Title</label>
                 <input
                     type="text"
                     name="title"
@@ -70,12 +70,12 @@ const NewAchievement: React.FC = () => {
                     placeholder="What did you accomplish?"
                     value={formData.title}
                     onChange={handleChange}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-yellow-500 focus:ring-yellow-500 sm:text-sm p-2 border"
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-yellow-500 focus:ring-yellow-500 sm:text-sm p-2 border dark:bg-gray-800 dark:border-gray-600 dark:text-white"
                 />
                 </div>
 
                 <div>
-                <label className="block text-sm font-medium text-gray-700">Context (The Story)</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Context (The Story)</label>
                 <textarea
                     name="context"
                     rows={3}
@@ -83,17 +83,17 @@ const NewAchievement: React.FC = () => {
                     placeholder="Describe what happened. The AI will judge you based on this."
                     value={formData.context}
                     onChange={handleChange}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-yellow-500 focus:ring-yellow-500 sm:text-sm p-2 border"
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-yellow-500 focus:ring-yellow-500 sm:text-sm p-2 border dark:bg-gray-800 dark:border-gray-600 dark:text-white"
                 />
                 </div>
 
                 <div>
-                    <label className="block text-sm font-medium text-gray-700">Linked Quest (Optional)</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Linked Quest (Optional)</label>
                     <select
                         name="quest_id"
                         value={formData.quest_id}
                         onChange={handleChange}
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-yellow-500 focus:ring-yellow-500 sm:text-sm p-2 border"
+                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-yellow-500 focus:ring-yellow-500 sm:text-sm p-2 border dark:bg-gray-800 dark:border-gray-600 dark:text-white"
                     >
                         <option value="">-- None --</option>
                         {quests.map(q => (
@@ -104,12 +104,12 @@ const NewAchievement: React.FC = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                    <label className="block text-sm font-medium text-gray-700">Dimension</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Dimension</label>
                     <select
                     name="dimension"
                     value={formData.dimension}
                     onChange={handleChange}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-yellow-500 focus:ring-yellow-500 sm:text-sm p-2 border"
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-yellow-500 focus:ring-yellow-500 sm:text-sm p-2 border dark:bg-gray-800 dark:border-gray-600 dark:text-white"
                     >
                     {['intellectual', 'physical', 'financial', 'environmental', 'vocational', 'social', 'emotional', 'spiritual'].map(d => (
                         <option key={d} value={d}>{d.charAt(0).toUpperCase() + d.slice(1)}</option>
@@ -118,13 +118,13 @@ const NewAchievement: React.FC = () => {
                 </div>
 
                 <div>
-                    <label className="block text-sm font-medium text-gray-700">Date Completed</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Date Completed</label>
                     <input
                     type="date"
                     name="date_completed"
                     value={formData.date_completed}
                     onChange={handleChange}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-yellow-500 focus:ring-yellow-500 sm:text-sm p-2 border"
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-yellow-500 focus:ring-yellow-500 sm:text-sm p-2 border dark:bg-gray-800 dark:border-gray-600 dark:text-white"
                     />
                 </div>
                 </div>

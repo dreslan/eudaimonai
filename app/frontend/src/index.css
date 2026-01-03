@@ -1,1 +1,13 @@
 @import "tailwindcss";
+
+@theme {
+  --color-dcc-dark: #0f172a;
+  --color-dcc-card: #1e293b;
+  --color-dcc-system: #f97316;
+
+  --color-dcc-gold: #eab308;
+  --color-dcc-danger: #ef4444;
+}
+
+/* Force dark mode to be class-based */
+@variant dark (&:where(.dark, .dark *));
