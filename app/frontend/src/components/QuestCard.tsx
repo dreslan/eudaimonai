@@ -47,14 +47,14 @@ const QuestCard: React.FC<QuestCardProps> = ({
                 <div className="absolute inset-0 overflow-hidden pointer-events-none select-none rounded-2xl">
                     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[250%] h-[250%] -rotate-45 opacity-10 flex items-center justify-center">
                         <p className={`text-[10px] font-black uppercase text-${borderColor}-200 tracking-widest leading-relaxed text-center w-full break-words`}>
-                            {Array.from({ length: 800 }).fill("QUEST LOG").join(" ")}
+                            {Array.from({ length: 800 }).fill("QUEST CARD").join(" ")}
                         </p>
                     </div>
                 </div>
 
                 {/* Header */}
                 <div className={`bg-gray-900 p-4 border-b-4 border-${borderColor}-700 relative z-10 text-center shadow-md`}>
-                    <h3 className={`font-['Cinzel'] font-black text-xl text-${borderColor}-400 tracking-widest drop-shadow-md`}>QUEST LOG</h3>
+                    <h3 className={`font-['Cinzel'] font-black text-xl text-${borderColor}-400 tracking-widest drop-shadow-md`}>QUEST CARD</h3>
                 </div>
 
                 {/* Body - QR Code */}
@@ -66,7 +66,7 @@ const QuestCard: React.FC<QuestCardProps> = ({
                 
                 {/* Footer */}
                 <div className={`bg-gray-900 p-4 border-t-4 border-${borderColor}-700 relative z-10 text-center shadow-md`}>
-                    <h3 className={`font-['Cinzel'] font-black text-xl text-${borderColor}-400 tracking-widest drop-shadow-md`}>QUEST LOG</h3>
+                    <h3 className={`font-['Cinzel'] font-black text-xl text-${borderColor}-400 tracking-widest drop-shadow-md`}>QUEST CARD</h3>
                 </div>
 
                 {!forceFace && (
