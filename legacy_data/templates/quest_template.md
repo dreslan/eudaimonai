@@ -9,7 +9,7 @@ due_date: <% tp.system.prompt("Due Date (YYYY-MM-DD)") %>
 
 # <% tp.file.title %>
 
-> [!GOAL] NEW ACHIEVEMENT!
+> [!GOAL] NEW QUEST!
 > *What is the specific, challenging, but feasible Quest?*
 
 ## 🌟 The Loot (Why)
