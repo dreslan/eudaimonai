@@ -16,6 +16,8 @@ import Tools from './pages/Tools';
 
 import QuestDetail from './pages/QuestDetail';
 import AchievementDetail from './pages/AchievementDetail';
+import RevealAchievement from './pages/RevealAchievement';
+import PrintView from './pages/PrintView';
 
 function App() {
   return (
@@ -26,10 +28,15 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             
+            <Route path="/print/quests/:id" element={<ProtectedRoute><PrintView /></ProtectedRoute>} />
+            <Route path="/print/achievements/:id" element={<ProtectedRoute><PrintView /></ProtectedRoute>} />
+            
             <Route element={<PublicLayout />}>
               <Route path="/public/:username" element={<PublicProfile />} />
               <Route path="/public/achievement/:id" element={<AchievementDetail />} />
             </Route>
+
+            <Route path="/achievements/:id/reveal" element={<ProtectedRoute><RevealAchievement /></ProtectedRoute>} />
             
             <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
               <Route index element={<Dashboard />} />

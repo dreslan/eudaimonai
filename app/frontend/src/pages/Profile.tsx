@@ -4,6 +4,8 @@ import { Link } from 'react-router-dom';
 import type { Achievement, Quest } from '../types';
 import { LayoutGrid, List, Search, Eye, EyeOff, Skull, Edit2, Check, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import QuestCard from '../components/QuestCard';
+import AchievementCard from '../components/AchievementCard';
 
 const Profile: React.FC = () => {
   const { updateUser } = useAuth();
@@ -16,6 +18,7 @@ const Profile: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [displayName, setDisplayName] = useState('');
+  const [apiKey, setApiKey] = useState('');
 
   useEffect(() => {
     const fetchData = async () => {
@@ -27,6 +30,7 @@ const Profile: React.FC = () => {
         ]);
         setProfile(profileRes.data);
         setDisplayName(profileRes.data.display_name || profileRes.data.username);
+        setApiKey(profileRes.data.openai_api_key || '');
         setQuests(questsRes.data);
         setAchievements(achievementsRes.data);
       } catch (error) {
@@ -40,8 +44,15 @@ const Profile: React.FC = () => {
 
   const handleUpdateProfile = async () => {
     try {
-      const res = await axios.put('http://localhost:8000/profile', { display_name: displayName });
-      const updatedProfile = { ...profile, display_name: res.data.display_name };
+      const res = await axios.put('http://localhost:8000/profile', { 
+          display_name: displayName,
+          openai_api_key: apiKey
+      });
+      const updatedProfile = { 
+          ...profile, 
+          display_name: res.data.display_name,
+          openai_api_key: res.data.openai_api_key
+      };
       setProfile(updatedProfile);
       updateUser(updatedProfile);
       setIsEditingProfile(false);
@@ -76,7 +87,7 @@ const Profile: React.FC = () => {
 
   const filteredQuests = quests.filter(q => 
     q.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    q.dimension.toLowerCase().includes(searchTerm.toLowerCase())
+    (q.dimension || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const filteredAchievements = achievements.filter(a => 
@@ -93,19 +104,36 @@ const Profile: React.FC = () => {
         
         <div className="flex items-center justify-center gap-2 mb-1">
             {isEditingProfile ? (
-                <div className="flex items-center gap-2">
-                    <input 
-                        type="text" 
-                        value={displayName} 
-                        onChange={(e) => setDisplayName(e.target.value)}
-                        className="border dark:border-gray-600 rounded px-2 py-1 text-gray-900 dark:text-white bg-transparent"
-                    />
-                    <button onClick={handleUpdateProfile} className="text-green-600 hover:text-green-700">
-                        <Check className="w-5 h-5" />
-                    </button>
-                    <button onClick={() => { setIsEditingProfile(false); setDisplayName(profile.display_name || profile.username); }} className="text-red-600 hover:text-red-700">
-                        <X className="w-5 h-5" />
-                    </button>
+                <div className="flex flex-col items-center gap-3 bg-gray-50 dark:bg-gray-800 p-4 rounded-lg border dark:border-gray-700">
+                    <div className="w-full">
+                        <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1 text-left">Display Name</label>
+                        <input 
+                            type="text" 
+                            value={displayName} 
+                            onChange={(e) => setDisplayName(e.target.value)}
+                            className="w-full border dark:border-gray-600 rounded px-2 py-1 text-gray-900 dark:text-white bg-white dark:bg-gray-900"
+                            placeholder="Display Name"
+                        />
+                    </div>
+                    <div className="w-full">
+                        <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1 text-left">OpenAI API Key (for GenAI)</label>
+                        <input 
+                            type="password" 
+                            value={apiKey} 
+                            onChange={(e) => setApiKey(e.target.value)}
+                            className="w-full border dark:border-gray-600 rounded px-2 py-1 text-gray-900 dark:text-white bg-white dark:bg-gray-900 text-sm font-mono"
+                            placeholder="sk-..."
+                        />
+                        <p className="text-[10px] text-gray-400 mt-1 text-left">Stored securely. Used only for generating achievement flavor text.</p>
+                    </div>
+                    <div className="flex gap-2 mt-2 w-full justify-end">
+                        <button onClick={() => { setIsEditingProfile(false); setDisplayName(profile.display_name || profile.username); setApiKey(profile.openai_api_key || ''); }} className="text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 px-3 py-1 rounded text-sm">
+                            Cancel
+                        </button>
+                        <button onClick={handleUpdateProfile} className="text-white bg-green-600 hover:bg-green-700 px-3 py-1 rounded flex items-center gap-1 text-sm shadow-sm">
+                            <Check className="w-3 h-3" /> Save Changes
+                        </button>
+                    </div>
                 </div>
             ) : (
                 <div className="flex flex-col items-center">
@@ -230,30 +258,18 @@ const Profile: React.FC = () => {
         {/* Content */}
         {activeTab === 'quests' ? (
             viewMode === 'grid' ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 justify-items-center">
                     {filteredQuests.map(quest => (
-                        <Link key={quest.id} to={`/quests/${quest.id}`} className={`block bg-white dark:bg-gray-800 rounded-lg shadow hover:shadow-md transition-shadow border dark:border-gray-700 p-4 relative group ${quest.is_hidden ? 'opacity-75' : ''}`}>
+                        <div key={quest.id} className="relative group">
+                            <QuestCard quest={quest} className={quest.is_hidden ? 'opacity-75' : ''} />
                             <button
                                 onClick={(e) => toggleQuestVisibility(e, quest)}
-                                className="absolute top-2 right-2 p-1 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 opacity-0 group-hover:opacity-100 transition-opacity"
+                                className="absolute top-2 right-2 z-20 p-2 rounded-full bg-gray-900/80 text-white hover:bg-gray-800 opacity-0 group-hover:opacity-100 transition-opacity shadow-lg border border-gray-700"
                                 title={quest.is_hidden ? "Show on public profile" : "Hide from public profile"}
                             >
                                 {quest.is_hidden ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                             </button>
-                            <div className="flex justify-between items-start mb-2 pr-6">
-                                <h3 className="font-bold text-lg text-gray-900 dark:text-white">{quest.title}</h3>
-                                <span className={`px-2 py-1 text-xs rounded-full ${quest.status === 'completed' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' : 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'}`}>
-                                    {quest.status}
-                                </span>
-                            </div>
-                            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4 line-clamp-2">{quest.victory_condition}</p>
-                            <div className="flex items-center text-xs text-gray-400 dark:text-gray-500">
-                                <span className="bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-300 px-2 py-0.5 rounded">
-                                    {quest.dimension}
-                                </span>
-                                {quest.is_hidden && <span className="ml-2 text-xs text-gray-400">(Hidden)</span>}
-                            </div>
-                        </Link>
+                        </div>
                     ))}
                 </div>
             ) : (
@@ -305,31 +321,22 @@ const Profile: React.FC = () => {
             )
         ) : (
             viewMode === 'grid' ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 justify-items-center">
                     {filteredAchievements.map((ach: Achievement) => (
-                        <Link key={ach.id} to={`/achievements/${ach.id}`} className={`block bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-shadow border-t-4 border-yellow-400 dark:border-dcc-gold group relative ${ach.is_hidden ? 'opacity-75' : ''}`}>
-                        <button
-                            onClick={(e) => toggleAchievementVisibility(e, ach)}
-                            className="absolute top-2 right-2 z-10 p-1 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 opacity-0 group-hover:opacity-100 transition-opacity"
-                            title={ach.is_hidden ? "Show on public profile" : "Hide from public profile"}
-                        >
-                            {ach.is_hidden ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                        </button>
-                        <div className="h-48 bg-gray-200 dark:bg-gray-700 relative overflow-hidden">
-                            {ach.image_url && <img src={ach.image_url} alt={ach.title} className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500" />}
-                            <div className="absolute top-0 right-0 bg-yellow-400 dark:bg-dcc-gold text-xs font-bold px-2 py-1 uppercase tracking-wider text-yellow-900 dark:text-black transform rotate-0">
-                                Unlocked
-                            </div>
+                        <div key={ach.id} className="relative group">
+                            <AchievementCard 
+                                achievement={ach} 
+                                username={profile?.display_name || profile?.username}
+                                className={ach.is_hidden ? 'opacity-75' : ''} 
+                            />
+                            <button
+                                onClick={(e) => toggleAchievementVisibility(e, ach)}
+                                className="absolute top-2 right-2 z-20 p-2 rounded-full bg-gray-900/80 text-white hover:bg-gray-800 opacity-0 group-hover:opacity-100 transition-opacity shadow-lg border border-gray-700"
+                                title={ach.is_hidden ? "Show on public profile" : "Hide from public profile"}
+                            >
+                                {ach.is_hidden ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                            </button>
                         </div>
-                        <div className="p-4">
-                            <h3 className="font-black text-lg mb-1 text-gray-900 dark:text-white uppercase tracking-wide">
-                                {ach.title}
-                                {ach.is_hidden && <span className="ml-2 text-xs text-gray-400 font-normal normal-case">(Hidden)</span>}
-                            </h3>
-                            <p className="text-xs text-gray-500 dark:text-gray-400 mb-2 font-mono">{new Date(ach.date_completed).toLocaleDateString()} {new Date(ach.date_completed).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p>
-                            <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-3 italic border-l-2 border-gray-200 dark:border-gray-600 pl-2">"{ach.ai_description || ach.context}"</p>
-                        </div>
-                        </Link>
                     ))}
                 </div>
             ) : (

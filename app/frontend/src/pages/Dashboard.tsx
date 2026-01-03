@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import type { Quest, Achievement } from '../types';
 import { CheckCircle, Circle, Trophy, Skull } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import QuestCard from '../components/QuestCard';
 
 const Dashboard: React.FC = () => {
   const [quests, setQuests] = useState<Quest[]>([]);
@@ -73,81 +74,68 @@ const Dashboard: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6 px-4 sm:px-0">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Active Quests */}
-        <div className="bg-white dark:bg-dcc-card shadow rounded-lg p-6 border dark:border-dcc-system/20">
-          <h2 className="text-xl font-bold mb-4 flex items-center text-gray-900 dark:text-white">
-            <Circle className="w-5 h-5 mr-2 text-orange-500 dark:text-dcc-system" />
-            Active Quests
-          </h2>
-          <div className="space-y-4">
-            {activeQuests.length === 0 ? (
-                <p className="text-gray-500 dark:text-gray-400 italic">No active quests. Start an adventure!</p>
-            ) : (
-                activeQuests.map(quest => (
-                <Link to={`/quests/${quest.id}`} key={quest.id} className="block border-b dark:border-gray-700 pb-4 last:border-0 last:pb-0 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors p-2 -mx-2 rounded">
-                    <div className="flex justify-between items-start">
-                    <div>
-                        <h3 className="font-semibold text-lg text-orange-600 dark:text-dcc-system">{quest.title}</h3>
-                        <p className="text-gray-600 dark:text-gray-300 text-sm line-clamp-2">{quest.victory_condition || "No victory condition defined."}</p>
-                        <div className="mt-2 flex space-x-2">
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200">
-                            {quest.dimension}
-                        </span>
-                        </div>
-                    </div>
-                    </div>
+    <div className="space-y-12 px-4 sm:px-0 pb-12">
+      {/* Active Quests */}
+      <div className="space-y-6">
+        <h2 className="text-2xl font-bold flex items-center text-gray-900 dark:text-white border-b pb-2 border-gray-200 dark:border-gray-700">
+          <Circle className="w-6 h-6 mr-2 text-orange-500 dark:text-dcc-system" />
+          Active Quests
+        </h2>
+        
+        {activeQuests.length === 0 ? (
+            <div className="text-center py-10 bg-gray-50 dark:bg-gray-800/50 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-700">
+                <p className="text-gray-500 dark:text-gray-400 italic text-lg">No active quests. You're slacking, Crawler.</p>
+                <Link to="/quests/new" className="mt-4 inline-block px-4 py-2 bg-dcc-system text-white rounded hover:bg-orange-700 transition-colors">
+                    Start New Quest
                 </Link>
-                ))
-            )}
-          </div>
-        </div>
+            </div>
+        ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 justify-items-center">
+                {activeQuests.map(quest => (
+                    <QuestCard key={quest.id} quest={quest} />
+                ))}
+            </div>
+        )}
+      </div>
 
-        {/* Recent Achievements */}
-        <div className="bg-white dark:bg-dcc-card shadow rounded-lg p-6 border dark:border-dcc-system/20">
-          <h2 className="text-xl font-bold mb-4 flex items-center text-gray-900 dark:text-white">
-            <CheckCircle className="w-5 h-5 mr-2 text-green-500 dark:text-dcc-gold" />
+      {/* Recent Achievements */}
+      <div className="space-y-6">
+          <h2 className="text-2xl font-bold flex items-center text-gray-900 dark:text-white border-b pb-2 border-gray-200 dark:border-gray-700">
+            <CheckCircle className="w-6 h-6 mr-2 text-green-500 dark:text-dcc-gold" />
             Recent Achievements
           </h2>
-          <div className="space-y-4">
-            {achievements.length === 0 ? (
-                <p className="text-gray-500 dark:text-gray-400 italic">No achievements yet. Go get 'em!</p>
-            ) : (
-                achievements.slice(-5).reverse().map(achievement => (
-                <Link to={`/achievements/${achievement.id}`} key={achievement.id} className="flex space-x-4 border-b dark:border-gray-700 pb-4 last:border-0 last:pb-0 hover:bg-yellow-50 dark:hover:bg-yellow-900/20 transition-colors p-3 -mx-2 rounded border-l-4 border-transparent hover:border-yellow-400 group">
-                    <div className="flex-shrink-0 w-16 h-24 bg-gray-200 dark:bg-gray-700 rounded overflow-hidden relative">
-                        {achievement.image_url && <img src={achievement.image_url} alt={achievement.title} className="w-full h-full object-cover" />}
-                    </div>
-                    <div>
-                    <h3 className="font-black text-lg text-gray-900 dark:text-gray-100 uppercase tracking-wide group-hover:text-yellow-600 dark:group-hover:text-dcc-gold transition-colors">{achievement.title}</h3>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mb-1 font-mono">{new Date(achievement.date_completed).toLocaleDateString()} {new Date(achievement.date_completed).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p>
-                    <p className="text-gray-600 dark:text-gray-300 text-sm line-clamp-2 italic">"{achievement.ai_description || achievement.context}"</p>
-                    </div>
-                </Link>
-                ))
-            )}
+          <div className="bg-white dark:bg-dcc-card shadow rounded-lg p-6 border dark:border-dcc-system/20">
+            <div className="space-y-4">
+                {achievements.length === 0 ? (
+                    <p className="text-gray-500 dark:text-gray-400 italic">No achievements yet. Go get 'em!</p>
+                ) : (
+                    achievements.slice(-5).reverse().map(achievement => (
+                    <Link to={`/achievements/${achievement.id}`} key={achievement.id} className="flex space-x-4 border-b dark:border-gray-700 pb-4 last:border-0 last:pb-0 hover:bg-yellow-50 dark:hover:bg-yellow-900/20 transition-colors p-3 -mx-2 rounded border-l-4 border-transparent hover:border-yellow-400 group">
+                        <div className="flex-shrink-0 w-16 h-24 bg-gray-200 dark:bg-gray-700 rounded overflow-hidden relative">
+                            {achievement.image_url && <img src={achievement.image_url} alt={achievement.title} className="w-full h-full object-cover" />}
+                        </div>
+                        <div>
+                        <h3 className="font-black text-lg text-gray-900 dark:text-gray-100 uppercase tracking-wide group-hover:text-yellow-600 dark:group-hover:text-dcc-gold transition-colors">{achievement.title}</h3>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mb-1 font-mono">{new Date(achievement.date_completed).toLocaleDateString()} {new Date(achievement.date_completed).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p>
+                        <p className="text-gray-600 dark:text-gray-300 text-sm line-clamp-2 italic">"{achievement.ai_description || achievement.context}"</p>
+                        </div>
+                    </Link>
+                    ))
+                )}
+            </div>
           </div>
-        </div>
       </div>
 
       {/* Completed Quests */}
       {completedQuests.length > 0 && (
-        <div className="bg-white dark:bg-dcc-card shadow rounded-lg p-6 border dark:border-dcc-system/20">
-            <h2 className="text-xl font-bold mb-4 flex items-center text-gray-900 dark:text-white">
-                <Trophy className="w-5 h-5 mr-2 text-yellow-500 dark:text-dcc-gold" />
+        <div className="space-y-6">
+            <h2 className="text-2xl font-bold flex items-center text-gray-900 dark:text-white border-b pb-2 border-gray-200 dark:border-gray-700">
+                <Trophy className="w-6 h-6 mr-2 text-yellow-500 dark:text-dcc-gold" />
                 Completed Quests
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 justify-items-center opacity-75 hover:opacity-100 transition-opacity">
                 {completedQuests.map(quest => (
-                    <Link to={`/quests/${quest.id}`} key={quest.id} className="block border dark:border-gray-700 rounded-lg p-4 hover:shadow-md transition-shadow bg-gray-50 dark:bg-gray-800/50">
-                        <h3 className="font-semibold text-lg text-gray-800 dark:text-gray-200">{quest.title}</h3>
-                        <div className="mt-2">
-                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
-                                Completed
-                            </span>
-                        </div>
-                    </Link>
+                    <QuestCard key={quest.id} quest={quest} className="grayscale hover:grayscale-0 transition-all duration-500" />
                 ))}
             </div>
         </div>

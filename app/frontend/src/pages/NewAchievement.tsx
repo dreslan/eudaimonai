@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import type { AchievementCreate, Quest } from '../types';
 
 const NewAchievement: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const questIdParam = searchParams.get('quest_id');
+  
   const [quests, setQuests] = useState<Quest[]>([]);
   const [formData, setFormData] = useState<AchievementCreate>({
     title: '',
@@ -27,6 +30,19 @@ const NewAchievement: React.FC = () => {
     fetchQuests();
   }, []);
 
+  useEffect(() => {
+    if (questIdParam && quests.length > 0) {
+        const selectedQuest = quests.find(q => q.id === questIdParam);
+        if (selectedQuest) {
+             setFormData(prev => ({ 
+                ...prev, 
+                quest_id: questIdParam,
+                dimension: selectedQuest.dimension 
+            }));
+        }
+    }
+  }, [questIdParam, quests]);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
     const checked = (e.target as HTMLInputElement).checked;
@@ -48,8 +64,8 @@ const NewAchievement: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await axios.post('http://localhost:8000/achievements', formData);
-      navigate('/');
+      const res = await axios.post('http://localhost:8000/achievements', formData);
+      navigate(`/achievements/${res.data.id}/reveal`);
     } catch (error) {
       console.error("Error creating achievement", error);
     }

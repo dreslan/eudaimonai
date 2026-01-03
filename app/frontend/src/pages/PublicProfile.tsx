@@ -3,6 +3,8 @@ import axios from 'axios';
 import { useParams, Link } from 'react-router-dom';
 import type { Achievement, Quest } from '../types';
 import { LayoutGrid, List, Search, Skull } from 'lucide-react';
+import QuestCard from '../components/QuestCard';
+import AchievementCard from '../components/AchievementCard';
 
 const PublicProfile: React.FC = () => {
   const { username } = useParams<{ username: string }>();
@@ -34,7 +36,7 @@ const PublicProfile: React.FC = () => {
 
   const filteredQuests = quests.filter(q => 
     q.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    q.dimension.toLowerCase().includes(searchTerm.toLowerCase())
+    (q.dimension || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const filteredAchievements = achievements.filter(a => 
@@ -146,22 +148,9 @@ const PublicProfile: React.FC = () => {
         {/* Content */}
         {activeTab === 'quests' ? (
             viewMode === 'grid' ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 justify-items-center">
                     {filteredQuests.map(quest => (
-                        <div key={quest.id} className="block bg-white dark:bg-gray-800 rounded-lg shadow hover:shadow-md transition-shadow border dark:border-gray-700 p-4">
-                            <div className="flex justify-between items-start mb-2">
-                                <h3 className="font-bold text-lg text-gray-900 dark:text-white">{quest.title}</h3>
-                                <span className={`px-2 py-1 text-xs rounded-full ${quest.status === 'completed' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' : 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'}`}>
-                                    {quest.status}
-                                </span>
-                            </div>
-                            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4 line-clamp-2">{quest.victory_condition}</p>
-                            <div className="flex items-center text-xs text-gray-400 dark:text-gray-500">
-                                <span className="bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-300 px-2 py-0.5 rounded">
-                                    {quest.dimension}
-                                </span>
-                            </div>
-                        </div>
+                        <QuestCard key={quest.id} quest={quest} />
                     ))}
                 </div>
             ) : (
@@ -202,21 +191,13 @@ const PublicProfile: React.FC = () => {
             )
         ) : (
             viewMode === 'grid' ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 justify-items-center">
                     {filteredAchievements.map((ach: Achievement) => (
-                        <Link to={`/public/achievement/${ach.id}`} key={ach.id} className="block bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-shadow border-t-4 border-yellow-400 dark:border-dcc-gold group cursor-pointer">
-                        <div className="h-48 bg-gray-200 dark:bg-gray-700 relative overflow-hidden">
-                            {ach.image_url && <img src={ach.image_url} alt={ach.title} className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500" />}
-                            <div className="absolute top-0 right-0 bg-yellow-400 dark:bg-dcc-gold text-xs font-bold px-2 py-1 uppercase tracking-wider text-yellow-900 dark:text-black transform rotate-0">
-                                Unlocked
-                            </div>
-                        </div>
-                        <div className="p-4">
-                            <h3 className="font-black text-lg mb-1 text-gray-900 dark:text-white uppercase tracking-wide">{ach.title}</h3>
-                            <p className="text-xs text-gray-500 dark:text-gray-400 mb-2 font-mono">{new Date(ach.date_completed).toLocaleDateString()} {new Date(ach.date_completed).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p>
-                            <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-3 italic border-l-2 border-gray-200 dark:border-gray-600 pl-2">"{ach.ai_description || ach.context}"</p>
-                        </div>
-                        </Link>
+                        <AchievementCard 
+                            key={ach.id} 
+                            achievement={ach} 
+                            username={profile?.display_name || profile?.username}
+                        />
                     ))}
                 </div>
             ) : (

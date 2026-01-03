@@ -5,6 +5,8 @@ from typing import List, Optional
 from models import Quest, QuestCreate, QuestUpdate, Achievement, AchievementCreate, AchievementUpdate, BulkVisibilityUpdate, User, UserCreate, UserUpdate, Token, UserInDB
 from database_sqlite import db
 import random
+import json
+from openai import OpenAI
 from datetime import date, datetime, timezone, timedelta
 from auth import verify_password, get_password_hash, create_access_token, ACCESS_TOKEN_EXPIRE_MINUTES
 from jose import JWTError, jwt
@@ -191,7 +193,40 @@ def create_achievement(achievement: AchievementCreate, current_user: UserInDB = 
     if not achievement.image_url:
         achievement.image_url = "https://source.unsplash.com/random/300x400?fantasy,card"
     
-    # DCC AI Voice Mocking
+    # Real GenAI Logic
+    if achievement.use_genai and current_user.openai_api_key:
+        try:
+            client = OpenAI(api_key=current_user.openai_api_key)
+            
+            prompt = f"""
+            You are the AI from Dungeon Crawler Carl. You are sarcastic, condescending, but occasionally begrudgingly impressed.
+            The user has just completed an achievement: "{achievement.title}".
+            Context: "{achievement.context}".
+            Dimension: "{achievement.dimension}".
+            
+            Generate two things:
+            1. A short description (max 2 sentences) in your voice, mocking or congratulating them.
+            2. A "Reward" (text only) that is funny, useless, or slightly useful but insulting.
+            
+            Format: JSON with keys 'description' and 'reward'.
+            """
+            
+            response = client.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=[{"role": "system", "content": "You are a sarcastic AI game master."}, {"role": "user", "content": prompt}],
+                response_format={ "type": "json_object" }
+            )
+            
+            content = json.loads(response.choices[0].message.content)
+            achievement.ai_description = content.get('description')
+            achievement.ai_reward = content.get('reward')
+            
+        except Exception as e:
+            print(f"GenAI Error: {e}")
+            # Fallback to mock if error
+            pass
+
+    # DCC AI Voice Mocking (Fallback)
     dcc_intros = [
         "NEW ACHIEVEMENT!",
         "CONGRATULATIONS, CRAWLER!",
@@ -261,6 +296,7 @@ def get_profile(current_user: UserInDB = Depends(get_current_user)):
     return {
         "username": current_user.username,
         "display_name": current_user.display_name,
+        "openai_api_key": current_user.openai_api_key,
         "level": 1 + (len(achievements) // 5),
         "stats": {
             "quests_active": len([q for q in quests if q['status'] == 'active']),

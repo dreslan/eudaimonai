@@ -11,6 +11,7 @@ class UserDB(Base):
     id = Column(String, primary_key=True, index=True)
     username = Column(String, unique=True, index=True)
     display_name = Column(String, nullable=True)
+    openai_api_key = Column(String, nullable=True)
     hashed_password = Column(String)
     disabled = Column(Boolean, default=False)
 

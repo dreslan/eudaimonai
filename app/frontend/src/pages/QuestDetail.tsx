@@ -2,103 +2,16 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import type { Quest, Achievement } from '../types';
-import { ArrowLeft, CheckSquare, Edit, Trash2, Plus, ExternalLink } from 'lucide-react';
-
-const QuestLogItem: React.FC<{ achievement: Achievement; index: number }> = ({ achievement, index }) => {
-  const [isFlipped, setIsFlipped] = useState(false);
-  const isCompletion = achievement.title.startsWith("Quest Complete:");
-
-  return (
-    <div className="relative flex gap-4">
-      {/* Timeline line */}
-      <div className="absolute left-[19px] top-8 bottom-[-32px] w-0.5 bg-gray-200 dark:bg-gray-700 last:hidden"></div>
-      
-      <div className="flex-shrink-0 mt-1">
-        <div className={`w-10 h-10 rounded-full flex items-center justify-center border-2 shadow-sm z-10 relative
-            ${isCompletion ? 'bg-yellow-400 border-yellow-600 text-yellow-900 dark:bg-dcc-gold dark:border-yellow-600 dark:text-black' : 'bg-orange-100 border-white text-orange-600 dark:bg-dcc-card dark:border-dcc-system dark:text-dcc-system'}`}>
-            <span className="text-xs font-bold">
-                {isCompletion ? '★' : `#${index + 1}`}
-            </span>
-        </div>
-      </div>
-      
-      <div 
-        className="flex-1 relative group cursor-pointer"
-        style={{ perspective: '1000px' }}
-        onClick={() => setIsFlipped(!isFlipped)}
-      >
-        <div 
-            className="relative w-full transition-transform duration-500"
-            style={{ 
-                transformStyle: 'preserve-3d',
-                transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)'
-            }}
-        >
-            {/* Front Face */}
-            <div 
-                className={`relative w-full rounded-lg p-4 border shadow-md flex flex-col justify-between min-h-[140px]
-                    ${isCompletion 
-                        ? 'bg-yellow-50 border-yellow-400 dark:bg-yellow-900/20 dark:border-yellow-600' 
-                        : 'bg-white border-gray-200 hover:border-orange-300 dark:bg-dcc-card dark:border-gray-700 dark:hover:border-dcc-system'}`}
-                style={{ backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden' }}
-            >
-                <div>
-                    <div className="flex justify-between items-start">
-                        <h3 className={`font-bold text-lg ${isCompletion ? 'text-yellow-900 dark:text-dcc-gold uppercase tracking-wide' : 'text-gray-900 dark:text-white'}`}>
-                            {achievement.title}
-                        </h3>
-                    </div>
-                    <p className={`text-sm mt-2 ${isCompletion ? 'text-yellow-800 dark:text-yellow-200' : 'text-gray-600 dark:text-gray-300'}`}>
-                        {achievement.context}
-                    </p>
-                </div>
-                <div className="flex justify-between items-end mt-4">
-                    <span className={`text-xs font-mono ${isCompletion ? 'text-yellow-700 dark:text-yellow-300' : 'text-gray-400 dark:text-gray-500'}`}>
-                        {new Date(achievement.date_completed).toLocaleDateString()} {new Date(achievement.date_completed).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
-                    </span>
-                    <span className="text-xs text-orange-400 dark:text-dcc-system font-medium opacity-0 group-hover:opacity-100 transition-opacity">Click to flip</span>
-                </div>
-            </div>
-
-            {/* Back Face */}
-            <div 
-                className={`absolute inset-0 w-full h-full rounded-lg p-4 border shadow-md flex flex-col justify-between
-                    ${isCompletion 
-                        ? 'bg-yellow-100 border-yellow-500 dark:bg-yellow-900/40 dark:border-yellow-500' 
-                        : 'bg-orange-50 border-orange-200 dark:bg-slate-800 dark:border-dcc-system/50'}`}
-                style={{ 
-                    backfaceVisibility: 'hidden',
-                    WebkitBackfaceVisibility: 'hidden',
-                    transform: 'rotateY(180deg)' 
-                }}
-            >
-                <div>
-                    <p className="text-sm italic text-gray-700 dark:text-gray-300 line-clamp-3">
-                        "{achievement.ai_description}"
-                    </p>
-                </div>
-                
-                <div className="flex justify-end mt-2" onClick={(e) => e.stopPropagation()}>
-                    <Link 
-                        to={`/achievements/${achievement.id}`}
-                        className="inline-flex items-center text-xs font-bold text-orange-600 hover:text-orange-800 bg-white px-2 py-1 rounded border border-orange-200 shadow-sm dark:bg-dcc-card dark:text-dcc-system dark:border-dcc-system dark:hover:text-white"
-                    >
-                        View Full Card <ExternalLink className="w-3 h-3 ml-1" />
-                    </Link>
-                </div>
-            </div>
-        </div>
-      </div>
-    </div>
-  );
-};
+import { ArrowLeft, CheckSquare, Edit, Trash2, Plus } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import AchievementCard from '../components/AchievementCard';
 
 const QuestDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [quest, setQuest] = useState<Quest | null>(null);
   const [linkedAchievements, setLinkedAchievements] = useState<Achievement[]>([]);
-  const [newUpdate, setNewUpdate] = useState('');
 
   const fetchData = async () => {
     try {
@@ -150,29 +63,10 @@ const QuestDetail: React.FC = () => {
     }
   };
 
-  const handleAddUpdate = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newUpdate.trim() || !quest) return;
-
-    try {
-        await axios.post('http://localhost:8000/achievements', {
-            title: newUpdate,
-            context: `Update for quest: ${quest.title}`,
-            date_completed: new Date().toISOString(),
-            dimension: quest.dimension,
-            quest_id: quest.id
-        });
-        setNewUpdate('');
-        fetchData();
-    } catch (error) {
-        console.error("Error adding update", error);
-    }
-  };
-
   if (!quest) return <div>Loading...</div>;
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
+    <div className="max-w-7xl mx-auto space-y-6 px-4 sm:px-6 lg:px-8">
       <div className="flex justify-between items-center mb-4">
         <Link to="/" className="inline-flex items-center text-orange-600 hover:text-orange-800 dark:text-dcc-system dark:hover:text-white">
             <ArrowLeft className="w-4 h-4 mr-1" /> Back to Dashboard
@@ -227,32 +121,29 @@ const QuestDetail: React.FC = () => {
         <div className="border-t dark:border-gray-700 pt-6">
             <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Quest Log</h2>
             
-            {/* Add Update Form */}
+            {/* Add Update Button */}
             {quest.status !== 'completed' && (
-                <form onSubmit={handleAddUpdate} className="mb-8 flex gap-2">
-                    <input
-                        type="text"
-                        value={newUpdate}
-                        onChange={(e) => setNewUpdate(e.target.value)}
-                        placeholder="Log an update..."
-                        className="flex-1 rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm p-2 border dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:placeholder-gray-500"
-                    />
-                    <button
-                        type="submit"
-                        className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-orange-600 hover:bg-orange-700 dark:bg-dcc-system dark:text-black dark:hover:bg-orange-400"
+                <div className="mb-8">
+                    <Link
+                        to={`/achievements/new?quest_id=${quest.id}`}
+                        className="w-full flex justify-center items-center px-4 py-3 border border-transparent text-base font-medium rounded-md text-white bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 shadow-md transform transition hover:scale-[1.02]"
                     >
-                        <Plus className="w-4 h-4 mr-1" /> Log
-                    </button>
-                </form>
+                        <Plus className="w-5 h-5 mr-2" /> Claim Achievement / Log Progress
+                    </Link>
+                </div>
             )}
 
-            {/* Timeline */}
-            <div className="space-y-8">
+            {/* Card Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 justify-items-center">
                 {linkedAchievements.length === 0 ? (
-                    <p className="text-gray-500 italic">No updates yet. Start your journey!</p>
+                    <p className="text-gray-500 italic col-span-full">No updates yet. Start your journey!</p>
                 ) : (
-                    linkedAchievements.map((ach, index) => (
-                        <QuestLogItem key={ach.id} achievement={ach} index={index} />
+                    linkedAchievements.map((ach) => (
+                        <AchievementCard 
+                            key={ach.id} 
+                            achievement={ach} 
+                            username={user?.display_name || user?.username}
+                        />
                     ))
                 )}
             </div>

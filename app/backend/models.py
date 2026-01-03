@@ -64,10 +64,12 @@ class UserCreate(UserBase):
 
 class UserUpdate(BaseModel):
     display_name: Optional[str] = None
+    openai_api_key: Optional[str] = None
 
 class User(UserBase):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     disabled: bool = False
+    openai_api_key: Optional[str] = None
 
 class UserInDB(User):
     hashed_password: str

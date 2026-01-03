@@ -146,6 +146,7 @@ class SqliteDatabase:
                 id=user.id,
                 username=user.username,
                 display_name=user.display_name,
+                openai_api_key=user.openai_api_key,
                 hashed_password=user.hashed_password,
                 disabled=user.disabled
             )
