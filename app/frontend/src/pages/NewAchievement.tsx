@@ -68,7 +68,7 @@ const NewAchievement: React.FC = () => {
     e.preventDefault();
     try {
       const res = await axios.post('http://localhost:8000/achievements', formData);
-      navigate(`/achievements/${res.data.id}/reveal`);
+      navigate(`/achievements/${res.data.id}`);
     } catch (error) {
       console.error("Error creating achievement", error);
     }

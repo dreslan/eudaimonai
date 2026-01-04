@@ -14,7 +14,6 @@ import PublicProfile from './pages/PublicProfile';
 
 import QuestDetail from './pages/QuestDetail';
 import AchievementDetail from './pages/AchievementDetail';
-import RevealAchievement from './pages/RevealAchievement';
 import PrintView from './pages/PrintView';
 
 function App() {
@@ -34,8 +33,6 @@ function App() {
               <Route path="/public/achievement/:id" element={<AchievementDetail />} />
             </Route>
 
-            <Route path="/achievements/:id/reveal" element={<ProtectedRoute><RevealAchievement /></ProtectedRoute>} />
-            
             <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
               <Route index element={<Dashboard />} />
               <Route path="quests/new" element={<NewQuest />} />
