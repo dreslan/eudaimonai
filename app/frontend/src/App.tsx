@@ -29,7 +29,7 @@ function App() {
             <Route path="/print/achievements/:id" element={<ProtectedRoute><PrintView /></ProtectedRoute>} />
             
             <Route element={<PublicLayout />}>
-              <Route path="/public/:username" element={<PublicProfile />} />
+              <Route path="/public/profile/:username" element={<PublicProfile />} />
               <Route path="/public/achievement/:id" element={<AchievementDetail />} />
             </Route>
 

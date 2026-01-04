@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
 import type { Achievement, Quest, User } from '../types';
-import { LayoutGrid, List, Search, Eye, EyeOff, Skull, Edit2, Check, Printer, Download, Shield, Sparkles } from 'lucide-react';
+import { LayoutGrid, List, Search, Eye, EyeOff, Skull, Edit2, Check, Printer, Download, Shield, Sparkles, ExternalLink } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import QuestCard from '../components/QuestCard';
 import AchievementCard from '../components/AchievementCard';
@@ -15,8 +15,8 @@ const Profile: React.FC = () => {
   const [quests, setQuests] = useState<Quest[]>([]);
   const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'quests' | 'achievements' | 'settings'>('quests');
-  const [questFilter, setQuestFilter] = useState<'all' | 'active' | 'completed'>('all');
+  const [activeTab, setActiveTab] = useState<'curator' | 'settings'>('curator');
+  const [curatorTab, setCuratorTab] = useState<'quests' | 'achievements'>('quests');
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
   const [searchTerm, setSearchTerm] = useState('');
   const [isEditingProfile, setIsEditingProfile] = useState(false);
@@ -24,6 +24,7 @@ const Profile: React.FC = () => {
   const [apiKey, setApiKey] = useState('');
 
   const baseUrl = window.location.origin;
+  const publicProfileUrl = `${baseUrl}/public/profile/${profile?.username}`;
   const newQuestUrl = `${baseUrl}/quests/new`;
   const newAchievementUrl = `${baseUrl}/achievements/new`;
 
@@ -96,8 +97,7 @@ const Profile: React.FC = () => {
   const filteredQuests = quests.filter(q => {
     const matchesSearch = q.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
                           (q.dimension || '').toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesFilter = questFilter === 'all' || q.status === questFilter;
-    return matchesSearch && matchesFilter;
+    return matchesSearch;
   });
 
   const filteredAchievements = achievements.filter(a => 
@@ -152,28 +152,28 @@ const Profile: React.FC = () => {
         <p className="text-gray-500 dark:text-gray-400">Level {profile.level || 1} Crawler</p>
         
         <div className="mt-4">
-            <Link to={`/public/${profile.username}`} className="text-sm text-orange-600 dark:text-dcc-system hover:underline flex items-center justify-center gap-1">
+            <Link to={`/public/profile/${profile.username}`} className="text-sm text-orange-600 dark:text-dcc-system hover:underline flex items-center justify-center gap-1">
                 View Public Profile
             </Link>
         </div>
         
         <div className="grid grid-cols-3 gap-4 mt-6 border-t dark:border-gray-700 pt-6">
           <button 
-            onClick={() => { setActiveTab('quests'); setQuestFilter('active'); }}
+            onClick={() => { setActiveTab('curator'); setCuratorTab('quests'); }}
             className="group hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg p-2 transition-colors"
           >
             <div className="text-2xl font-bold text-gray-900 dark:text-white group-hover:text-orange-600 dark:group-hover:text-dcc-system transition-colors">{profile.stats?.quests_active || 0}</div>
             <div className="text-sm text-gray-500 dark:text-gray-400">Active Quests</div>
           </button>
           <button 
-            onClick={() => { setActiveTab('quests'); setQuestFilter('completed'); }}
+            onClick={() => { setActiveTab('curator'); setCuratorTab('quests'); }}
             className="group hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg p-2 transition-colors"
           >
             <div className="text-2xl font-bold text-gray-900 dark:text-white group-hover:text-orange-600 dark:group-hover:text-dcc-system transition-colors">{profile.stats?.quests_completed || 0}</div>
             <div className="text-sm text-gray-500 dark:text-gray-400">Completed</div>
           </button>
           <button 
-            onClick={() => setActiveTab('achievements')}
+            onClick={() => { setActiveTab('curator'); setCuratorTab('achievements'); }}
             className="group hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg p-2 transition-colors"
           >
             <div className="text-2xl font-bold text-gray-900 dark:text-white group-hover:text-orange-600 dark:group-hover:text-dcc-system transition-colors">{profile.stats?.achievements_unlocked || 0}</div>
@@ -219,39 +219,37 @@ const Profile: React.FC = () => {
             {/* Tabs */}
             <div className="flex space-x-1 bg-gray-100 dark:bg-gray-800 p-1 rounded-lg">
                 <button
-                    onClick={() => setActiveTab('quests')}
-                    className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${activeTab === 'quests' ? 'bg-white dark:bg-dcc-card text-orange-600 dark:text-dcc-system shadow-sm' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'}`}
+                    onClick={() => setActiveTab('curator')}
+                    className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${activeTab === 'curator' ? 'bg-white dark:bg-dcc-card text-orange-600 dark:text-dcc-system shadow-sm' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'}`}
                 >
-                    Quests
-                </button>
-                <button
-                    onClick={() => setActiveTab('achievements')}
-                    className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${activeTab === 'achievements' ? 'bg-white dark:bg-dcc-card text-orange-600 dark:text-dcc-system shadow-sm' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'}`}
-                >
-                    Achievements
+                    Public Profile Curator
                 </button>
                 <button
                     onClick={() => setActiveTab('settings')}
                     className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${activeTab === 'settings' ? 'bg-white dark:bg-dcc-card text-orange-600 dark:text-dcc-system shadow-sm' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'}`}
                 >
-                    Settings & Tools
+                    Account Settings
                 </button>
             </div>
 
             {/* Search & View Toggle */}
-            {activeTab !== 'settings' && (
+            {activeTab === 'curator' && (
             <div className="flex items-center space-x-4 w-full sm:w-auto">
-                {activeTab === 'quests' && (
-                    <select
-                        value={questFilter}
-                        onChange={(e) => setQuestFilter(e.target.value as 'all' | 'active' | 'completed')}
-                        className="block w-32 pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                <div className="flex space-x-1 bg-gray-100 dark:bg-gray-800 p-1 rounded-lg mr-2">
+                    <button
+                        onClick={() => setCuratorTab('quests')}
+                        className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${curatorTab === 'quests' ? 'bg-white dark:bg-dcc-card text-orange-600 dark:text-dcc-system shadow-sm' : 'text-gray-500 dark:text-gray-400'}`}
                     >
-                        <option value="all">All Status</option>
-                        <option value="active">Active</option>
-                        <option value="completed">Completed</option>
-                    </select>
-                )}
+                        Quests
+                    </button>
+                    <button
+                        onClick={() => setCuratorTab('achievements')}
+                        className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${curatorTab === 'achievements' ? 'bg-white dark:bg-dcc-card text-orange-600 dark:text-dcc-system shadow-sm' : 'text-gray-500 dark:text-gray-400'}`}
+                    >
+                        Achievements
+                    </button>
+                </div>
+
                 <div className="relative flex-1 sm:flex-none">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                         <Search className="h-4 w-4 text-gray-400" />
@@ -283,7 +281,31 @@ const Profile: React.FC = () => {
         </div>
 
         {/* Content */}
-        {activeTab === 'quests' && (
+        {activeTab === 'curator' && (
+            <>
+            {/* Curator Header */}
+            <div className="mb-6 flex justify-between items-center bg-orange-50 dark:bg-orange-900/20 p-4 rounded-lg border border-orange-100 dark:border-orange-900/30">
+                <div className="flex items-center gap-3">
+                    <div className="p-2 bg-orange-100 dark:bg-orange-900/50 rounded-full text-orange-600 dark:text-dcc-system">
+                        <Eye className="w-5 h-5" />
+                    </div>
+                    <div>
+                        <h3 className="font-bold text-gray-900 dark:text-white">Public Visibility</h3>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">Toggle the eye icon on cards to show/hide them from your public profile.</p>
+                    </div>
+                </div>
+                <a 
+                    href={publicProfileUrl} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                >
+                    <ExternalLink className="w-4 h-4" />
+                    View Public Profile
+                </a>
+            </div>
+
+            {curatorTab === 'quests' && (
             viewMode === 'grid' ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 justify-items-center">
                     {filteredQuests.map(quest => (
@@ -291,15 +313,24 @@ const Profile: React.FC = () => {
                             <QuestCard 
                                 quest={quest} 
                                 username={profile?.display_name || profile?.username}
-                                className={quest.is_hidden ? 'opacity-75' : ''} 
+                                className={quest.is_hidden ? 'opacity-60 grayscale' : ''} 
+                                onVisibilityChange={(isHidden: boolean) => {
+                                    setQuests(quests.map(q => q.id === quest.id ? { ...q, is_hidden: isHidden } : q));
+                                }}
                             />
-                            <button
-                                onClick={(e) => toggleQuestVisibility(e, quest)}
-                                className="absolute top-2 right-2 z-20 p-2 rounded-full bg-gray-900/80 text-white hover:bg-gray-800 opacity-0 group-hover:opacity-100 transition-opacity shadow-lg border border-gray-700"
-                                title={quest.is_hidden ? "Show on public profile" : "Hide from public profile"}
-                            >
-                                {quest.is_hidden ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                            </button>
+                            <div className="absolute top-2 right-2 z-20">
+                                <button
+                                    onClick={(e) => toggleQuestVisibility(e, quest)}
+                                    className={`p-2 rounded-full shadow-lg border transition-all ${
+                                        quest.is_hidden 
+                                        ? 'bg-gray-800 text-gray-400 border-gray-600 hover:text-white' 
+                                        : 'bg-white text-green-600 border-green-200 hover:text-green-700'
+                                    }`}
+                                    title={quest.is_hidden ? "Hidden from public" : "Visible to public"}
+                                >
+                                    {quest.is_hidden ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                </button>
+                            </div>
                         </div>
                     ))}
                 </div>
@@ -352,7 +383,7 @@ const Profile: React.FC = () => {
             )
         )}
 
-        {activeTab === 'achievements' && (
+        {curatorTab === 'achievements' && (
             viewMode === 'grid' ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 justify-items-center">
                     {filteredAchievements.map((ach: Achievement) => (
@@ -361,15 +392,24 @@ const Profile: React.FC = () => {
                                 achievement={ach} 
                                 username={profile?.display_name || profile?.username}
                                 questTitle={quests.find(q => q.id === ach.quest_id)?.title}
-                                className={ach.is_hidden ? 'opacity-75' : ''} 
+                                className={ach.is_hidden ? 'opacity-60 grayscale' : ''} 
+                                onVisibilityChange={(isHidden: boolean) => {
+                                    setAchievements(achievements.map(a => a.id === ach.id ? { ...a, is_hidden: isHidden } : a));
+                                }}
                             />
-                            <button
-                                onClick={(e) => toggleAchievementVisibility(e, ach)}
-                                className="absolute top-2 right-2 z-20 p-2 rounded-full bg-gray-900/80 text-white hover:bg-gray-800 opacity-0 group-hover:opacity-100 transition-opacity shadow-lg border border-gray-700"
-                                title={ach.is_hidden ? "Show on public profile" : "Hide from public profile"}
-                            >
-                                {ach.is_hidden ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                            </button>
+                            <div className="absolute top-2 right-2 z-20">
+                                <button
+                                    onClick={(e) => toggleAchievementVisibility(e, ach)}
+                                    className={`p-2 rounded-full shadow-lg border transition-all ${
+                                        ach.is_hidden 
+                                        ? 'bg-gray-800 text-gray-400 border-gray-600 hover:text-white' 
+                                        : 'bg-white text-green-600 border-green-200 hover:text-green-700'
+                                    }`}
+                                    title={ach.is_hidden ? "Hidden from public" : "Visible to public"}
+                                >
+                                    {ach.is_hidden ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                </button>
+                            </div>
                         </div>
                     ))}
                 </div>
@@ -414,6 +454,8 @@ const Profile: React.FC = () => {
                     </table>
                 </div>
             )
+        )}
+        </>
         )}
 
         {activeTab === 'settings' && (

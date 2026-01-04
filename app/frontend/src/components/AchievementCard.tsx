@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { QRCodeSVG } from 'qrcode.react';
-import { Printer, ArrowRight, RotateCw } from 'lucide-react';
+import { Printer, ArrowRight, RotateCw, Eye, EyeOff } from 'lucide-react';
 import type { Achievement } from '../types';
 import { dimensionColors } from '../utils/colors';
 import { getDimensionIcon } from '../utils/dimensionIcons';
+import axios from 'axios';
 
 interface AchievementCardProps {
     achievement: Achievement;
@@ -13,6 +14,7 @@ interface AchievementCardProps {
     className?: string;
     forceFace?: 'front' | 'back';
     hideActions?: boolean;
+    onVisibilityChange?: (newVisibility: boolean) => void;
 }
 
 const AchievementCard: React.FC<AchievementCardProps> = ({ 
@@ -21,9 +23,11 @@ const AchievementCard: React.FC<AchievementCardProps> = ({
     questTitle, 
     className = '',
     forceFace,
-    hideActions = false
+    hideActions = false,
+    onVisibilityChange
 }) => {
     const [isFlipped, setIsFlipped] = useState(false);
+    const [isHidden, setIsHidden] = useState(achievement.is_hidden || false);
     const [imgError, setImgError] = useState(false);
     const dimension = achievement.dimension || 'default';
     const theme = dimensionColors[dimension] || dimensionColors.default;
@@ -39,6 +43,20 @@ const AchievementCard: React.FC<AchievementCardProps> = ({
         e.stopPropagation();
         if (!forceFace) {
             setIsFlipped(!isFlipped);
+        }
+    };
+
+    const toggleVisibility = async (e: React.MouseEvent) => {
+        e.stopPropagation();
+        try {
+            const newHiddenState = !isHidden;
+            await axios.patch(`http://localhost:8000/achievements/${achievement.id}`, { is_hidden: newHiddenState });
+            setIsHidden(newHiddenState);
+            if (onVisibilityChange) {
+                onVisibilityChange(newHiddenState);
+            }
+        } catch (error) {
+            console.error("Error updating visibility", error);
         }
     };
 
@@ -175,6 +193,13 @@ const AchievementCard: React.FC<AchievementCardProps> = ({
                     <div className="flex gap-2 ml-2 print:hidden">
                         {!hideActions && (
                             <>
+                                <button 
+                                    onClick={toggleVisibility}
+                                    className={`${isHidden ? 'text-gray-600' : 'text-gray-400'} hover:text-white transition-colors`}
+                                    title={isHidden ? "Make Public" : "Hide from Public"}
+                                >
+                                    {isHidden ? <EyeOff size={16} /> : <Eye size={16} />}
+                                </button>
                                 <button 
                                     onClick={handlePrint}
                                     className="text-gray-400 hover:text-white transition-colors"

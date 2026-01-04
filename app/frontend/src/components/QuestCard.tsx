@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { QRCodeSVG } from 'qrcode.react';
-import { Printer, ArrowRight, RotateCw } from 'lucide-react';
+import { Printer, ArrowRight, RotateCw, Eye, EyeOff } from 'lucide-react';
 import type { Quest } from '../types';
 import { dimensionColors } from '../utils/colors';
 import { getDimensionIcon } from '../utils/dimensionIcons';
+import axios from 'axios';
 
 interface QuestCardProps {
     quest: Quest;
@@ -12,6 +13,7 @@ interface QuestCardProps {
     className?: string;
     forceFace?: 'front' | 'back';
     hideActions?: boolean;
+    onVisibilityChange?: (newVisibility: boolean) => void;
 }
 
 const QuestCard: React.FC<QuestCardProps> = ({ 
@@ -19,9 +21,11 @@ const QuestCard: React.FC<QuestCardProps> = ({
     username = 'Crawler',
     className = '',
     forceFace,
-    hideActions = false
+    hideActions = false,
+    onVisibilityChange
 }) => {
     const [isFlipped, setIsFlipped] = useState(false);
+    const [isHidden, setIsHidden] = useState(quest.is_hidden || false);
     const dimension = quest.dimension || 'default';
     const theme = dimensionColors[dimension] || dimensionColors.default;
     const questUrl = `${window.location.origin}/quests/${quest.id}`;
@@ -36,6 +40,20 @@ const QuestCard: React.FC<QuestCardProps> = ({
         e.stopPropagation();
         if (!forceFace) {
             setIsFlipped(!isFlipped);
+        }
+    };
+
+    const toggleVisibility = async (e: React.MouseEvent) => {
+        e.stopPropagation();
+        try {
+            const newHiddenState = !isHidden;
+            await axios.patch(`http://localhost:8000/quests/${quest.id}`, { is_hidden: newHiddenState });
+            setIsHidden(newHiddenState);
+            if (onVisibilityChange) {
+                onVisibilityChange(newHiddenState);
+            }
+        } catch (error) {
+            console.error("Error updating visibility", error);
         }
     };
 
@@ -158,6 +176,13 @@ const QuestCard: React.FC<QuestCardProps> = ({
                     <div className="flex gap-3 print:hidden">
                         {!hideActions && (
                             <>
+                                <button 
+                                    onClick={toggleVisibility}
+                                    className={`${isHidden ? 'text-gray-600' : 'text-gray-400'} hover:text-white transition-colors`}
+                                    title={isHidden ? "Make Public" : "Hide from Public"}
+                                >
+                                    {isHidden ? <EyeOff size={18} /> : <Eye size={18} />}
+                                </button>
                                 <button 
                                     onClick={handlePrint}
                                     className="text-gray-400 hover:text-white transition-colors"
