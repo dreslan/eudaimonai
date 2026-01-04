@@ -18,6 +18,25 @@ EudaimonAI is built upon the framework of the **8 Dimensions of Wellness** (deve
 7.  **🎨 Emotional:** Coping effectively with life.
 8.  **✨ Spiritual:** Purpose and meaning.
 
+### Why the 8 Dimensions?
+
+We could have built EudaimonAI on other wellness frameworks:
+
+- **Carol Ryff’s Six-Factor Model**
+- **Corey Keyes' Flourishing**
+- **Seligman’s PERMA** model. 
+
+The thing is, all of these frameworks aim to move the user towards the same distination: holistic flourishing.
+
+We chose the **8 Dimensions of Wellness** because it is suited for an RPG format. Unlike purely psychological models, it treats your "character" as an inhabitant of a physical world, not just a mind in a vacuum. It breaks wellness down into concrete, actionable domains—like **Financial** and **Environmental**—that translate perfectly into a quest log with measurable data.
+
+Whether we had chosen Ryff, PERMA, or the 8 Dimensions, the goal to move "directionally" toward Eudaimonia would have been achievable, it's just that Peggy's framework aligns well with an RPG type setting that demands character stats and character levelling.
+
+*References:*
+*   [Rutgers: Mapping Mental Health with Dr. Swarbrick](https://alcoholstudies.rutgers.edu/mapping-mental-health-dr-swarbrick-the-eight-wellness-dimensions/)
+*   [Georgia Tech: Wellbeing Roadmaps](https://wellbeingroadmaps.gatech.edu/8-dimensions-of-wellness)
+*   [UCLA Rise Center](https://risecenter.ucla.edu/file/54de9fa0-c9b3-408b-b9a3-b50b710b4067)
+
 ## 🎮 System Mechanics
 
 The System AI interacts with you through a gamified interface:
