@@ -46,6 +46,11 @@ const NewQuest: React.FC = () => {
         const fetchQuest = async () => {
             try {
                 const res = await axios.get(`http://localhost:8000/quests/${id}`);
+                if (res.data.status === 'completed') {
+                    alert("Completed quests cannot be edited.");
+                    navigate(`/quests/${id}`);
+                    return;
+                }
                 setFormData(res.data);
                 if (res.data.due_date) {
                     setHasDueDate(true);
@@ -56,7 +61,7 @@ const NewQuest: React.FC = () => {
         };
         fetchQuest();
     }
-  }, [isEditMode, id]);
+  }, [isEditMode, id, navigate]);
 
   const handleDueDateToggle = (e: React.ChangeEvent<HTMLInputElement>) => {
       const checked = e.target.checked;

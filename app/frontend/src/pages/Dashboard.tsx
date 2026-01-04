@@ -217,7 +217,8 @@ const Dashboard: React.FC = () => {
                             <select 
                                 value={quest.status}
                                 onChange={(e) => handleStatusChange(quest.id, e.target.value as Status)}
-                                className="text-xs border-none bg-transparent text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white cursor-pointer focus:ring-0"
+                                disabled={quest.status === 'completed'}
+                                className={`text-xs border-none bg-transparent text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white cursor-pointer focus:ring-0 ${quest.status === 'completed' ? 'opacity-50 cursor-not-allowed' : ''}`}
                             >
                                 <option value="active">Active</option>
                                 <option value="backlog">Backlog</option>
@@ -259,9 +260,10 @@ const Dashboard: React.FC = () => {
                                         <select 
                                             value={quest.status}
                                             onChange={(e) => handleStatusChange(quest.id, e.target.value as Status)}
+                                            disabled={quest.status === 'completed'}
                                             className={`text-xs font-semibold rounded-full px-2 py-1 border-0 cursor-pointer focus:ring-2 focus:ring-orange-500 ${
                                                 quest.status === 'active' ? 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200' :
-                                                quest.status === 'completed' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' :
+                                                quest.status === 'completed' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 opacity-75 cursor-not-allowed' :
                                                 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
                                             }`}
                                         >

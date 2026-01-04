@@ -172,12 +172,14 @@ const QuestDetail: React.FC = () => {
                         </span>
                     )}
 
+                    {quest.status !== 'completed' && (
                     <Link
                         to={`/quests/${id}/edit`}
                         className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 dark:bg-dcc-card dark:text-gray-200 dark:border-gray-600 dark:hover:bg-gray-700"
                     >
                         <Edit className="w-4 h-4 mr-1" /> Edit
                     </Link>
+                    )}
                     <button
                         onClick={handleDelete}
                         className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 dark:bg-dcc-danger dark:hover:bg-red-600"
@@ -242,7 +244,7 @@ const QuestDetail: React.FC = () => {
                       </button>
                   </div>
 
-                  {!isPublic && (
+                  {!isPublic && quest.status !== 'completed' && (
                   <Link 
                       to={`/achievements/new?quest_id=${id}`}
                       className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-dcc-system hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 dark:hover:bg-orange-400"

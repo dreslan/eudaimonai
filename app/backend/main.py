@@ -111,10 +111,17 @@ def update_quest(quest_id: str, update_data: QuestUpdate, current_user: UserInDB
     if not current_quest_dict:
         raise HTTPException(status_code=404, detail="Quest not found")
 
-    # Update fields
     current_quest = Quest(**current_quest_dict)
     updated_fields = update_data.model_dump(exclude_unset=True)
-    
+
+    # Check for completion restrictions
+    if current_quest.status == 'completed':
+        # Allow is_hidden updates, but disallow everything else
+        non_hidden_updates = {k: v for k, v in updated_fields.items() if k != 'is_hidden'}
+        if non_hidden_updates:
+             raise HTTPException(status_code=400, detail="Cannot edit a completed quest.")
+
+    # Update fields
     quest_data = current_quest.model_dump()
     quest_data.update(updated_fields)
     updated_quest = Quest(**quest_data)
