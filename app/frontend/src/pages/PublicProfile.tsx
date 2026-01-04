@@ -5,6 +5,7 @@ import type { Achievement, Quest, User } from '../types';
 import { LayoutGrid, List, Search, Skull } from 'lucide-react';
 import QuestCard from '../components/QuestCard';
 import AchievementCard from '../components/AchievementCard';
+import CardActionBar from '../components/CardActionBar';
 
 interface PublicProfileData extends User {
     quests: Quest[];
@@ -156,7 +157,15 @@ const PublicProfile: React.FC = () => {
             viewMode === 'grid' ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 justify-items-center">
                     {filteredQuests.map(quest => (
-                        <QuestCard key={quest.id} quest={quest} isPublicView={true} />
+                        <div key={quest.id} className="flex flex-col gap-4 w-full max-w-sm items-center">
+                            <QuestCard quest={quest} />
+                            <CardActionBar 
+                                type="quest"
+                                id={quest.id}
+                                status={quest.status}
+                                isPublicView={true}
+                            />
+                        </div>
                     ))}
                 </div>
             ) : (
@@ -199,12 +208,18 @@ const PublicProfile: React.FC = () => {
             viewMode === 'grid' ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 justify-items-center">
                     {filteredAchievements.map((ach: Achievement) => (
-                        <AchievementCard 
-                            key={ach.id} 
-                            achievement={ach} 
-                            username={profile?.display_name || profile?.username}
-                            questTitle={quests.find(q => q.id === ach.quest_id)?.title}
-                        />
+                        <div key={ach.id} className="flex flex-col gap-4 w-full max-w-sm items-center">
+                            <AchievementCard 
+                                achievement={ach} 
+                                username={profile?.display_name || profile?.username}
+                                questTitle={quests.find(q => q.id === ach.quest_id)?.title}
+                            />
+                            <CardActionBar 
+                                type="achievement"
+                                id={ach.id}
+                                isPublicView={true}
+                            />
+                        </div>
                     ))}
                 </div>
             ) : (

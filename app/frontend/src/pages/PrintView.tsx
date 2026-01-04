@@ -60,13 +60,11 @@ const PrintView: React.FC = () => {
                             quest={data as Quest} 
                             username={user?.display_name || user?.username}
                             forceFace="front"
-                            hideActions={true}
                         />
                         <QuestCard 
                             quest={data as Quest} 
                             username={user?.display_name || user?.username}
                             forceFace="back"
-                            hideActions={true}
                         />
                     </div>
                 ) : (

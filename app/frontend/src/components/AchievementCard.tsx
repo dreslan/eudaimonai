@@ -1,11 +1,9 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
 import { QRCodeSVG } from 'qrcode.react';
-import { Printer, ArrowRight, RotateCw, Eye, EyeOff, Share2 } from 'lucide-react';
+import { RotateCw } from 'lucide-react';
 import type { Achievement } from '../types';
 import { dimensionColors } from '../utils/colors';
 import { getDimensionIcon } from '../utils/dimensionIcons';
-import axios from 'axios';
 
 interface AchievementCardProps {
     achievement: Achievement;
@@ -13,9 +11,6 @@ interface AchievementCardProps {
     questTitle?: string;
     className?: string;
     forceFace?: 'front' | 'back';
-    hideActions?: boolean;
-    onVisibilityChange?: (newVisibility: boolean) => void;
-    isPublicView?: boolean;
 }
 
 const AchievementCard: React.FC<AchievementCardProps> = ({ 
@@ -23,29 +18,14 @@ const AchievementCard: React.FC<AchievementCardProps> = ({
     username = 'Anonymous', 
     questTitle, 
     className = '',
-    forceFace,
-    hideActions = false,
-    onVisibilityChange,
-    isPublicView = false
+    forceFace
 }) => {
     const [isFlipped, setIsFlipped] = useState(false);
-    const [isHidden, setIsHidden] = useState(achievement.is_hidden || false);
     const [imgError, setImgError] = useState(false);
     const dimension = achievement.dimension || 'default';
     const theme = dimensionColors[dimension] || dimensionColors.default;
     const shareUrl = `${window.location.origin}/public/achievement/${achievement.id}`;
     const Icon = getDimensionIcon(dimension);
-
-    const handlePrint = (e: React.MouseEvent) => {
-        e.stopPropagation();
-        window.open(`/print/achievements/${achievement.id}`, '_blank');
-    };
-
-    const handleShare = (e: React.MouseEvent) => {
-        e.stopPropagation();
-        navigator.clipboard.writeText(shareUrl);
-        alert("Public link copied to clipboard!");
-    };
 
     const handleFlip = (e: React.MouseEvent) => {
         e.stopPropagation();
@@ -54,24 +34,13 @@ const AchievementCard: React.FC<AchievementCardProps> = ({
         }
     };
 
-    const toggleVisibility = async (e: React.MouseEvent) => {
-        e.stopPropagation();
-        try {
-            const newHiddenState = !isHidden;
-            await axios.patch(`http://localhost:8000/achievements/${achievement.id}`, { is_hidden: newHiddenState });
-            setIsHidden(newHiddenState);
-            if (onVisibilityChange) {
-                onVisibilityChange(newHiddenState);
-            }
-        } catch (error) {
-            console.error("Error updating visibility", error);
-        }
-    };
-
     // Render content based on face
     const renderContent = () => {
         const BackContent = (
-            <div className={`w-full h-full rounded-2xl overflow-hidden bg-yellow-500 border-[12px] border-yellow-600 shadow-2xl flex flex-col relative`}>
+            <div 
+                onClick={handleFlip}
+                className={`w-full h-full rounded-2xl overflow-hidden bg-yellow-500 border-[12px] border-yellow-600 shadow-2xl flex flex-col relative cursor-pointer`}
+            >
                 {/* Pattern Background */}
                 <div className="absolute inset-0 overflow-hidden pointer-events-none select-none rounded-2xl">
                     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[250%] h-[250%] -rotate-45 opacity-10 flex items-center justify-center">
@@ -106,12 +75,9 @@ const AchievementCard: React.FC<AchievementCardProps> = ({
 
                 {!forceFace && (
                     <div className="absolute top-4 right-4 z-20 print:hidden">
-                        <button 
-                            onClick={handleFlip}
-                            className="p-2 hover:bg-white/10 rounded-full transition-colors text-white/70 hover:text-white"
-                        >
+                        <div className="p-2 bg-black/20 rounded-full text-white/70">
                             <RotateCw size={20} />
-                        </button>
+                        </div>
                     </div>
                 )}
             </div>
@@ -123,7 +89,10 @@ const AchievementCard: React.FC<AchievementCardProps> = ({
 
         // Default to Front
         const FrontContent = (
-            <div className={`w-full h-full rounded-2xl overflow-hidden bg-gray-900 text-white flex flex-col border-[12px] border-yellow-600 shadow-2xl relative`}>
+            <div 
+                onClick={handleFlip}
+                className={`w-full h-full rounded-2xl overflow-hidden bg-gray-900 text-white flex flex-col border-[12px] border-yellow-600 shadow-2xl relative cursor-pointer`}
+            >
                 {/* Inner Border */}
                 <div className={`absolute inset-0 border-[2px] border-yellow-400/50 rounded-lg pointer-events-none z-20`}></div>
 
@@ -146,13 +115,9 @@ const AchievementCard: React.FC<AchievementCardProps> = ({
                             </div>
                         </div>
                         {!forceFace && (
-                            <button 
-                                onClick={handleFlip}
-                                className="ml-2 p-1.5 hover:bg-white/10 rounded-full transition-colors text-white/70 hover:text-white print:hidden"
-                                title="Flip Card"
-                            >
+                            <div className="ml-2 p-1.5 bg-black/20 rounded-full text-white/70 print:hidden">
                                 <RotateCw size={16} />
-                            </button>
+                            </div>
                         )}
                     </div>
                 </div>
@@ -184,7 +149,7 @@ const AchievementCard: React.FC<AchievementCardProps> = ({
 
                 {/* Footer */}
                 <div className={`bg-gray-900 border-t-2 border-yellow-600 min-h-[40px] flex items-center justify-between px-3 py-2 relative z-10`}>
-                    <div className="flex-1 flex flex-col justify-center max-w-[80%]">
+                    <div className="flex-1 flex flex-col justify-center max-w-full">
                         {achievement.ai_reward && (
                             <div className="flex flex-col mb-2 pb-2 border-b border-gray-800">
                                 <div className="text-[8px] text-yellow-500 uppercase font-bold tracking-widest">Reward</div>
@@ -197,44 +162,6 @@ const AchievementCard: React.FC<AchievementCardProps> = ({
                         <span className="text-[6px] text-gray-600 mt-1 leading-tight font-mono">
                             FINE PRINT: ACHIEVEMENT HAS NO CASH VALUE. MANAGEMENT DENIES ALL KNOWLEDGE OF HOW THIS WAS ACCOMPLISHED.
                         </span>
-                    </div>
-                    <div className="flex gap-2 ml-2 print:hidden">
-                        {!hideActions && (
-                            <>
-                                {!isPublicView && (
-                                    <>
-                                        <button 
-                                            onClick={handleShare}
-                                            className="text-gray-400 hover:text-white transition-colors"
-                                            title="Share Public Link"
-                                        >
-                                            <Share2 size={16} />
-                                        </button>
-                                        <button 
-                                            onClick={toggleVisibility}
-                                            className={`${isHidden ? 'text-gray-600' : 'text-gray-400'} hover:text-white transition-colors`}
-                                            title={isHidden ? "Make Public" : "Hide from Public"}
-                                        >
-                                            {isHidden ? <EyeOff size={16} /> : <Eye size={16} />}
-                                        </button>
-                                    </>
-                                )}
-                                <button 
-                                    onClick={handlePrint}
-                                    className="text-gray-400 hover:text-white transition-colors"
-                                    title="Print Card"
-                                >
-                                    <Printer size={16} />
-                                </button>
-                                <Link 
-                                    to={isPublicView ? `/public/achievement/${achievement.id}` : `/achievements/${achievement.id}`}
-                                    className="text-yellow-500 hover:text-yellow-200 transition-colors"
-                                    title="View Details"
-                                >
-                                    <ArrowRight size={18} />
-                                </Link>
-                            </>
-                        )}
                     </div>
                 </div>
             </div>

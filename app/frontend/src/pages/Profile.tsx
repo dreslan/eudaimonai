@@ -6,6 +6,7 @@ import { LayoutGrid, List, Search, Eye, EyeOff, Skull, Edit2, Check, Share2, Ext
 import { useAuth } from '../context/AuthContext';
 import QuestCard from '../components/QuestCard';
 import AchievementCard from '../components/AchievementCard';
+import CardActionBar from '../components/CardActionBar';
 import DimensionBadge from '../components/DimensionBadge';
 import { QRCodeSVG } from 'qrcode.react';
 
@@ -274,28 +275,27 @@ const Profile: React.FC = () => {
             viewMode === 'grid' ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 justify-items-center">
                     {filteredQuests.map(quest => (
-                        <div key={quest.id} className="relative group">
+                        <div key={quest.id} className="flex flex-col gap-4 w-full max-w-sm items-center">
                             <QuestCard 
                                 quest={quest} 
                                 username={profile?.display_name || profile?.username}
                                 className={quest.is_hidden ? 'opacity-60 grayscale' : ''} 
-                                onVisibilityChange={(isHidden: boolean) => {
-                                    setQuests(quests.map(q => q.id === quest.id ? { ...q, is_hidden: isHidden } : q));
+                            />
+                            <CardActionBar 
+                                type="quest"
+                                id={quest.id}
+                                status={quest.status}
+                                isHidden={quest.is_hidden || false}
+                                onVisibilityChange={(newHidden) => {
+                                    // Use the existing toggleQuestVisibility logic but adapted
+                                    const updatedQuest = { ...quest, is_hidden: newHidden };
+                                    axios.patch(`http://localhost:8000/quests/${quest.id}`, { is_hidden: newHidden })
+                                        .then(() => {
+                                            setQuests(quests.map(q => q.id === quest.id ? updatedQuest : q));
+                                        })
+                                        .catch(err => console.error(err));
                                 }}
                             />
-                            <div className="absolute top-2 right-2 z-20">
-                                <button
-                                    onClick={(e) => toggleQuestVisibility(e, quest)}
-                                    className={`p-2 rounded-full shadow-lg border transition-all ${
-                                        quest.is_hidden 
-                                        ? 'bg-gray-800 text-gray-400 border-gray-600 hover:text-white' 
-                                        : 'bg-white text-green-600 border-green-200 hover:text-green-700'
-                                    }`}
-                                    title={quest.is_hidden ? "Hidden from public" : "Visible to public"}
-                                >
-                                    {quest.is_hidden ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                                </button>
-                            </div>
                         </div>
                     ))}
                 </div>
@@ -352,29 +352,26 @@ const Profile: React.FC = () => {
             viewMode === 'grid' ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 justify-items-center">
                     {filteredAchievements.map((ach: Achievement) => (
-                        <div key={ach.id} className="relative group">
+                        <div key={ach.id} className="flex flex-col gap-4 w-full max-w-sm items-center">
                             <AchievementCard 
                                 achievement={ach} 
                                 username={profile?.display_name || profile?.username}
                                 questTitle={quests.find(q => q.id === ach.quest_id)?.title}
                                 className={ach.is_hidden ? 'opacity-60 grayscale' : ''} 
-                                onVisibilityChange={(isHidden: boolean) => {
-                                    setAchievements(achievements.map(a => a.id === ach.id ? { ...a, is_hidden: isHidden } : a));
+                            />
+                            <CardActionBar 
+                                type="achievement"
+                                id={ach.id}
+                                isHidden={ach.is_hidden || false}
+                                onVisibilityChange={(newHidden) => {
+                                    const updatedAchievement = { ...ach, is_hidden: newHidden };
+                                    axios.patch(`http://localhost:8000/achievements/${ach.id}`, { is_hidden: newHidden })
+                                        .then(() => {
+                                            setAchievements(achievements.map(a => a.id === ach.id ? updatedAchievement : a));
+                                        })
+                                        .catch(err => console.error(err));
                                 }}
                             />
-                            <div className="absolute top-2 right-2 z-20">
-                                <button
-                                    onClick={(e) => toggleAchievementVisibility(e, ach)}
-                                    className={`p-2 rounded-full shadow-lg border transition-all ${
-                                        ach.is_hidden 
-                                        ? 'bg-gray-800 text-gray-400 border-gray-600 hover:text-white' 
-                                        : 'bg-white text-green-600 border-green-200 hover:text-green-700'
-                                    }`}
-                                    title={ach.is_hidden ? "Hidden from public" : "Visible to public"}
-                                >
-                                    {ach.is_hidden ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                                </button>
-                            </div>
                         </div>
                     ))}
                 </div>

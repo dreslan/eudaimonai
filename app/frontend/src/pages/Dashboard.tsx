@@ -6,6 +6,7 @@ import { Circle, LayoutGrid, List, Archive, History, Trophy, Search, ArrowRight 
 import { useAuth } from '../context/AuthContext';
 import QuestCard from '../components/QuestCard';
 import AchievementCard from '../components/AchievementCard';
+import CardActionBar from '../components/CardActionBar';
 import DimensionBadge from '../components/DimensionBadge';
 import Landing from './Landing';
 
@@ -145,12 +146,21 @@ const Dashboard: React.FC = () => {
             viewMode === 'grid' ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 justify-items-center">
                     {filteredAchievements.map(ach => (
-                        <AchievementCard 
-                            key={ach.id} 
-                            achievement={ach} 
-                            username={user?.display_name || user?.username}
-                            questTitle={quests.find(q => q.id === ach.quest_id)?.title}
-                        />
+                        <div key={ach.id} className="flex flex-col gap-4 w-full max-w-sm items-center">
+                            <AchievementCard 
+                                achievement={ach} 
+                                username={user?.display_name || user?.username}
+                                questTitle={quests.find(q => q.id === ach.quest_id)?.title}
+                            />
+                            <CardActionBar 
+                                type="achievement"
+                                id={ach.id}
+                                isHidden={ach.is_hidden || false}
+                                onVisibilityChange={(newHidden) => {
+                                    setAchievements(achievements.map(a => a.id === ach.id ? { ...a, is_hidden: newHidden } : a));
+                                }}
+                            />
+                        </div>
                     ))}
                 </div>
             ) : (
@@ -207,36 +217,21 @@ const Dashboard: React.FC = () => {
           viewMode === 'grid' ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 justify-items-center">
                 {filteredQuests.map(quest => (
-                    <div key={quest.id} className="flex flex-col gap-2 w-full max-w-sm items-center">
+                    <div key={quest.id} className="flex flex-col gap-4 w-full max-w-sm items-center">
                         <QuestCard 
                             quest={quest} 
                             username={user?.display_name || user?.username}
                         />
-                        {/* Quick Actions */}
-                        <div className="flex justify-end px-2 w-[320px]">
-                            <select 
-                                value={quest.status}
-                                onChange={(e) => handleStatusChange(quest.id, e.target.value as Status)}
-                                disabled={quest.status === 'completed'}
-                                className={`text-xs border-none bg-transparent text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white cursor-pointer focus:ring-0 ${quest.status === 'completed' ? 'opacity-50 cursor-not-allowed' : ''}`}
-                            >
-                                {quest.status === 'backlog' && (
-                                    <>
-                                        <option value="backlog">Backlog</option>
-                                        <option value="active">Active</option>
-                                    </>
-                                )}
-                                {quest.status === 'active' && (
-                                    <>
-                                        <option value="active">Active</option>
-                                        <option value="completed">Completed</option>
-                                    </>
-                                )}
-                                {quest.status === 'completed' && (
-                                    <option value="completed">Completed</option>
-                                )}
-                            </select>
-                        </div>
+                        <CardActionBar 
+                            type="quest"
+                            id={quest.id}
+                            status={quest.status}
+                            isHidden={quest.is_hidden || false}
+                            onStatusChange={(newStatus) => handleStatusChange(quest.id, newStatus)}
+                            onVisibilityChange={(newHidden) => {
+                                setQuests(quests.map(q => q.id === quest.id ? { ...q, is_hidden: newHidden } : q));
+                            }}
+                        />
                     </div>
                 ))}
             </div>

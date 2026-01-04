@@ -5,6 +5,7 @@ import type { Quest, Achievement, Status } from '../types';
 import { ArrowLeft, Edit, Trash2, Plus, LayoutGrid, List, Calendar, Play, CheckCircle, Share2, Settings } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import AchievementCard from '../components/AchievementCard';
+import CardActionBar from '../components/CardActionBar';
 import Timeline from '../components/Timeline';
 import DimensionBadge from '../components/DimensionBadge';
 
@@ -262,14 +263,28 @@ const QuestDetail: React.FC = () => {
           )}
 
           {viewMode === 'grid' && (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 justify-items-center">
                   {linkedAchievements.map(ach => (
-                      <AchievementCard 
-                          key={ach.id} 
-                          achievement={ach} 
-                          username={user?.display_name || user?.username}
-                          questTitle={quest.title}
-                      />
+                      <div key={ach.id} className="flex flex-col gap-4 w-full max-w-sm items-center">
+                          <AchievementCard 
+                              achievement={ach} 
+                              username={user?.display_name || user?.username}
+                              questTitle={quest.title}
+                          />
+                          <CardActionBar 
+                              type="achievement"
+                              id={ach.id}
+                              isHidden={ach.is_hidden || false}
+                              onVisibilityChange={(newHidden) => {
+                                  const updatedAchievement = { ...ach, is_hidden: newHidden };
+                                  axios.patch(`http://localhost:8000/achievements/${ach.id}`, { is_hidden: newHidden })
+                                      .then(() => {
+                                          setLinkedAchievements(linkedAchievements.map(a => a.id === ach.id ? updatedAchievement : a));
+                                      })
+                                      .catch(err => console.error(err));
+                              }}
+                          />
+                      </div>
                   ))}
               </div>
           )}

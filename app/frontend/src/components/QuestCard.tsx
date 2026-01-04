@@ -1,48 +1,28 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
 import { QRCodeSVG } from 'qrcode.react';
-import { Printer, ArrowRight, RotateCw, Eye, EyeOff, Share2 } from 'lucide-react';
+import { RotateCw } from 'lucide-react';
 import type { Quest } from '../types';
 import { dimensionColors } from '../utils/colors';
 import { getDimensionIcon } from '../utils/dimensionIcons';
-import axios from 'axios';
 
 interface QuestCardProps {
     quest: Quest;
     username?: string;
     className?: string;
     forceFace?: 'front' | 'back';
-    hideActions?: boolean;
-    onVisibilityChange?: (newVisibility: boolean) => void;
-    isPublicView?: boolean;
 }
 
 const QuestCard: React.FC<QuestCardProps> = ({ 
     quest, 
     username = 'Crawler',
     className = '',
-    forceFace,
-    hideActions = false,
-    onVisibilityChange,
-    isPublicView = false
+    forceFace
 }) => {
     const [isFlipped, setIsFlipped] = useState(false);
-    const [isHidden, setIsHidden] = useState(quest.is_hidden || false);
     const dimension = quest.dimension || 'default';
     const theme = dimensionColors[dimension] || dimensionColors.default;
     const questUrl = `${window.location.origin}/public/quests/${quest.id}`;
     const Icon = getDimensionIcon(dimension);
-
-    const handlePrint = (e: React.MouseEvent) => {
-        e.stopPropagation();
-        window.open(`/print/quests/${quest.id}`, '_blank');
-    };
-
-    const handleShare = (e: React.MouseEvent) => {
-        e.stopPropagation();
-        navigator.clipboard.writeText(questUrl);
-        alert("Public link copied to clipboard!");
-    };
 
     const handleFlip = (e: React.MouseEvent) => {
         e.stopPropagation();
@@ -51,24 +31,13 @@ const QuestCard: React.FC<QuestCardProps> = ({
         }
     };
 
-    const toggleVisibility = async (e: React.MouseEvent) => {
-        e.stopPropagation();
-        try {
-            const newHiddenState = !isHidden;
-            await axios.patch(`http://localhost:8000/quests/${quest.id}`, { is_hidden: newHiddenState });
-            setIsHidden(newHiddenState);
-            if (onVisibilityChange) {
-                onVisibilityChange(newHiddenState);
-            }
-        } catch (error) {
-            console.error("Error updating visibility", error);
-        }
-    };
-
     // Render content based on face
     const renderContent = () => {
         const BackContent = (
-            <div className={`w-full h-full rounded-2xl overflow-hidden ${theme.bg900} border-[12px] ${theme.border900} shadow-2xl flex flex-col relative`}>
+            <div 
+                onClick={handleFlip}
+                className={`w-full h-full rounded-2xl overflow-hidden ${theme.bg900} border-[12px] ${theme.border900} shadow-2xl flex flex-col relative cursor-pointer`}
+            >
                 {/* Pattern Background */}
                 <div className="absolute inset-0 overflow-hidden pointer-events-none select-none rounded-2xl">
                     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[250%] h-[250%] -rotate-45 opacity-10 flex items-center justify-center">
@@ -103,12 +72,9 @@ const QuestCard: React.FC<QuestCardProps> = ({
 
                 {!forceFace && (
                     <div className="absolute top-4 right-4 z-20 print:hidden">
-                        <button 
-                            onClick={handleFlip}
-                            className="p-2 hover:bg-white/10 rounded-full transition-colors text-white/70 hover:text-white"
-                        >
+                        <div className="p-2 bg-black/20 rounded-full text-white/70">
                             <RotateCw size={20} />
-                        </button>
+                        </div>
                     </div>
                 )}
             </div>
@@ -120,7 +86,10 @@ const QuestCard: React.FC<QuestCardProps> = ({
 
         // Default to Front (or 3D wrapper if no forceFace)
         const FrontContent = (
-            <div className={`w-full h-full rounded-2xl overflow-hidden bg-gray-900 text-white flex flex-col border-[12px] ${theme.border900} shadow-2xl relative`}>
+            <div 
+                onClick={handleFlip}
+                className={`w-full h-full rounded-2xl overflow-hidden bg-gray-900 text-white flex flex-col border-[12px] ${theme.border900} shadow-2xl relative cursor-pointer`}
+            >
                 {/* Inner Border */}
                 <div className={`absolute inset-0 border-[2px] ${theme.border400} opacity-50 rounded-lg pointer-events-none z-20`}></div>
                 
@@ -138,13 +107,9 @@ const QuestCard: React.FC<QuestCardProps> = ({
                             </div>
                         </div>
                         {!forceFace && (
-                            <button 
-                                onClick={handleFlip}
-                                className="ml-2 p-1.5 hover:bg-white/10 rounded-full transition-colors text-white/70 hover:text-white print:hidden"
-                                title="Flip Card"
-                            >
+                            <div className="ml-2 p-1.5 bg-black/20 rounded-full text-white/70 print:hidden">
                                 <RotateCw size={16} />
-                            </button>
+                            </div>
                         )}
                     </div>
                 </div>
@@ -172,52 +137,13 @@ const QuestCard: React.FC<QuestCardProps> = ({
 
                 {/* Footer */}
                 <div className={`bg-gray-900 p-3 border-t-2 ${theme.border900} flex justify-between items-center relative z-10`}>
-                    <div className="flex flex-col max-w-[80%]">
+                    <div className="flex flex-col max-w-full">
                         <span className="text-[9px] text-gray-400 uppercase tracking-widest leading-tight">
                             <span className={`font-black ${theme.text400} text-[11px]`}>{username}</span> WAS ISSUED THIS QUEST ON {new Date(quest.created_at).toLocaleDateString()}
                         </span>
                         <span className="text-[6px] text-gray-600 mt-1 leading-tight font-mono">
                             FINE PRINT: QUEST IS NON-REFUNDABLE. GOBLINS WILL EAT YOU IF YOU DO NOT COMPLETE IT. THOSE ARE THE RULES.
                         </span>
-                    </div>
-                    
-                    <div className="flex gap-3 print:hidden">
-                        {!hideActions && (
-                            <>
-                                {!isPublicView && (
-                                    <>
-                                        <button 
-                                            onClick={handleShare}
-                                            className="text-gray-400 hover:text-white transition-colors"
-                                            title="Share Public Link"
-                                        >
-                                            <Share2 size={18} />
-                                        </button>
-                                        <button 
-                                            onClick={toggleVisibility}
-                                            className={`${isHidden ? 'text-gray-600' : 'text-gray-400'} hover:text-white transition-colors`}
-                                            title={isHidden ? "Make Public" : "Hide from Public"}
-                                        >
-                                            {isHidden ? <EyeOff size={18} /> : <Eye size={18} />}
-                                        </button>
-                                    </>
-                                )}
-                                <button 
-                                    onClick={handlePrint}
-                                    className="text-gray-400 hover:text-white transition-colors"
-                                    title="Print Card"
-                                >
-                                    <Printer size={18} />
-                                </button>
-                                <Link 
-                                    to={isPublicView ? `/public/quests/${quest.id}` : `/quests/${quest.id}`}
-                                    className={`${theme.text400} hover:${theme.text200} transition-colors`}
-                                    title="View Details"
-                                >
-                                    <ArrowRight size={18} />
-                                </Link>
-                            </>
-                        )}
                     </div>
                 </div>
             </div>
