@@ -2,10 +2,11 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
 import type { Achievement, Quest } from '../types';
-import { LayoutGrid, List, Search, Eye, EyeOff, Skull, Edit2, Check } from 'lucide-react';
+import { LayoutGrid, List, Search, Eye, EyeOff, Skull, Edit2, Check, Settings, Printer, Download, Shield } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import QuestCard from '../components/QuestCard';
 import AchievementCard from '../components/AchievementCard';
+import { QRCodeSVG } from 'qrcode.react';
 
 const Profile: React.FC = () => {
   const { updateUser } = useAuth();
@@ -13,12 +14,16 @@ const Profile: React.FC = () => {
   const [quests, setQuests] = useState<Quest[]>([]);
   const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'quests' | 'achievements'>('quests');
+  const [activeTab, setActiveTab] = useState<'quests' | 'achievements' | 'settings'>('quests');
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
   const [searchTerm, setSearchTerm] = useState('');
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [displayName, setDisplayName] = useState('');
   const [apiKey, setApiKey] = useState('');
+
+  const baseUrl = window.location.origin;
+  const newQuestUrl = `${baseUrl}/quests/new`;
+  const newAchievementUrl = `${baseUrl}/achievements/new`;
 
   useEffect(() => {
     const fetchData = async () => {
@@ -150,7 +155,7 @@ const Profile: React.FC = () => {
             )}
         </div>
         
-        <p className="text-gray-500 dark:text-gray-400">Level {profile.level} Adventurer</p>
+        <p className="text-gray-500 dark:text-gray-400">Level {profile.level} Crawler</p>
         
         <div className="mt-4">
             <Link to={`/public/${profile.username}`} className="text-sm text-orange-600 dark:text-dcc-system hover:underline flex items-center justify-center gap-1">
@@ -222,9 +227,16 @@ const Profile: React.FC = () => {
                 >
                     Achievements
                 </button>
+                <button
+                    onClick={() => setActiveTab('settings')}
+                    className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${activeTab === 'settings' ? 'bg-white dark:bg-dcc-card text-orange-600 dark:text-dcc-system shadow-sm' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'}`}
+                >
+                    Settings & Tools
+                </button>
             </div>
 
             {/* Search & View Toggle */}
+            {activeTab !== 'settings' && (
             <div className="flex items-center space-x-4 w-full sm:w-auto">
                 <div className="relative flex-1 sm:flex-none">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -253,6 +265,7 @@ const Profile: React.FC = () => {
                     </button>
                 </div>
             </div>
+            )}
         </div>
 
         {/* Content */}
@@ -384,6 +397,163 @@ const Profile: React.FC = () => {
                     </table>
                 </div>
             )
+        )}
+
+        {activeTab === 'settings' && (
+            <div className="space-y-8">
+                {/* QR Codes Section */}
+                <div className="bg-white dark:bg-dcc-card rounded-lg">
+                    <div className="flex flex-col sm:flex-row justify-between items-start mb-6 gap-4">
+                        <div>
+                            <h2 className="text-xl font-bold dark:text-dcc-system flex items-center gap-2">
+                                <Printer className="w-5 h-5" /> QR Codes
+                            </h2>
+                            <p className="text-gray-600 dark:text-gray-400 mt-1 text-sm">Print these QR codes and attach them to your physical achievement box for quick access.</p>
+                        </div>
+                        <button 
+                            onClick={() => window.print()}
+                            className="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded hover:bg-gray-200 dark:hover:bg-gray-600 text-sm flex items-center gap-2 print:hidden"
+                        >
+                            <Printer className="w-4 h-4" />
+                            Print QR Codes
+                        </button>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div className="flex flex-col items-center p-6 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg">
+                            <h3 className="text-lg font-bold mb-4 text-orange-600 dark:text-dcc-system">New Quest</h3>
+                            <div className="bg-white p-4 rounded-lg shadow-sm">
+                                <QRCodeSVG value={newQuestUrl} size={160} />
+                            </div>
+                            <p className="mt-4 text-xs text-gray-500 dark:text-gray-400 font-mono break-all text-center">{newQuestUrl}</p>
+                        </div>
+
+                        <div className="flex flex-col items-center p-6 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg">
+                            <h3 className="text-lg font-bold mb-4 text-green-600 dark:text-green-400">New Achievement</h3>
+                            <div className="bg-white p-4 rounded-lg shadow-sm">
+                                <QRCodeSVG value={newAchievementUrl} size={160} />
+                            </div>
+                            <p className="mt-4 text-xs text-gray-500 dark:text-gray-400 font-mono break-all text-center">{newAchievementUrl}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <hr className="border-gray-200 dark:border-gray-700" />
+
+                {/* Privacy Settings */}
+                <div className="bg-white dark:bg-dcc-card rounded-lg">
+                    <h2 className="text-xl font-bold mb-4 dark:text-dcc-system flex items-center gap-2">
+                        <Shield className="w-5 h-5" /> Privacy Settings
+                    </h2>
+                    <p className="text-gray-600 dark:text-gray-400 mb-4 text-sm">Manage the visibility of your quests and achievements on your public profile.</p>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="p-4 border dark:border-gray-700 rounded-lg">
+                            <h3 className="font-semibold mb-3 dark:text-white">Quests</h3>
+                            <div className="flex gap-2">
+                                <button 
+                                    onClick={async () => {
+                                        if(window.confirm("Hide all quests from public profile?")) {
+                                            await axios.post('http://localhost:8000/quests/bulk-visibility', { is_hidden: true });
+                                            alert("All quests hidden.");
+                                            window.location.reload();
+                                        }
+                                    }}
+                                    className="px-3 py-1.5 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded hover:bg-gray-300 dark:hover:bg-gray-600 text-sm flex-1"
+                                >
+                                    Hide All
+                                </button>
+                                <button 
+                                    onClick={async () => {
+                                        if(window.confirm("Show all quests on public profile?")) {
+                                            await axios.post('http://localhost:8000/quests/bulk-visibility', { is_hidden: false });
+                                            alert("All quests visible.");
+                                            window.location.reload();
+                                        }
+                                    }}
+                                    className="px-3 py-1.5 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded hover:bg-gray-300 dark:hover:bg-gray-600 text-sm flex-1"
+                                >
+                                    Show All
+                                </button>
+                            </div>
+                        </div>
+                        <div className="p-4 border dark:border-gray-700 rounded-lg">
+                            <h3 className="font-semibold mb-3 dark:text-white">Achievements</h3>
+                            <div className="flex gap-2">
+                                <button 
+                                    onClick={async () => {
+                                        if(window.confirm("Hide all achievements from public profile?")) {
+                                            await axios.post('http://localhost:8000/achievements/bulk-visibility', { is_hidden: true });
+                                            alert("All achievements hidden.");
+                                            window.location.reload();
+                                        }
+                                    }}
+                                    className="px-3 py-1.5 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded hover:bg-gray-300 dark:hover:bg-gray-600 text-sm flex-1"
+                                >
+                                    Hide All
+                                </button>
+                                <button 
+                                    onClick={async () => {
+                                        if(window.confirm("Show all achievements on public profile?")) {
+                                            await axios.post('http://localhost:8000/achievements/bulk-visibility', { is_hidden: false });
+                                            alert("All achievements visible.");
+                                            window.location.reload();
+                                        }
+                                    }}
+                                    className="px-3 py-1.5 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded hover:bg-gray-300 dark:hover:bg-gray-600 text-sm flex-1"
+                                >
+                                    Show All
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <hr className="border-gray-200 dark:border-gray-700" />
+
+                {/* Data Export */}
+                <div className="bg-white dark:bg-dcc-card rounded-lg">
+                    <h2 className="text-xl font-bold mb-4 dark:text-dcc-system flex items-center gap-2">
+                        <Download className="w-5 h-5" /> Data Export
+                    </h2>
+                    <p className="text-gray-600 dark:text-gray-400 mb-4 text-sm">Download a copy of all your data.</p>
+                    <button 
+                        className="px-4 py-2 bg-orange-600 text-white rounded hover:bg-orange-700 dark:bg-dcc-system dark:text-black dark:hover:bg-orange-400 flex items-center gap-2 text-sm"
+                        onClick={() => {
+                            window.open('http://localhost:8000/quests', '_blank');
+                        }}
+                    >
+                        <Download className="w-4 h-4" /> Download Quests JSON
+                    </button>
+                </div>
+
+                <hr className="border-gray-200 dark:border-gray-700" />
+
+                {/* Danger Zone */}
+                <div className="bg-red-50 dark:bg-red-900/10 rounded-lg p-6 border border-red-200 dark:border-red-900/30">
+                    <h2 className="text-xl font-bold mb-4 text-red-600 dark:text-red-400 flex items-center gap-2">
+                        <Skull className="w-5 h-5" /> Danger Zone
+                    </h2>
+                    <p className="text-gray-600 dark:text-gray-400 mb-4 text-sm">Permanently delete all quests and achievements. This cannot be undone.</p>
+                    <button 
+                        className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-800 text-sm shadow-sm"
+                        onClick={async () => {
+                            if (window.confirm("Are you sure you want to delete ALL data? This cannot be undone.")) {
+                                try {
+                                    await axios.post('http://localhost:8000/reset');
+                                    alert("Data reset successfully.");
+                                    window.location.reload();
+                                } catch (error) {
+                                    console.error("Error resetting data:", error);
+                                    alert("Error resetting data.");
+                                }
+                            }
+                        }}
+                    >
+                        Reset All Data
+                    </button>
+                </div>
+            </div>
         )}
       </div>
       )}

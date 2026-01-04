@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, Outlet } from 'react-router-dom';
-import { LayoutDashboard, PlusCircle, Trophy, User, QrCode, Moon, Sun, LogOut } from 'lucide-react';
+import { LayoutDashboard, PlusCircle, Trophy, User, Moon, Sun, LogOut } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 
@@ -36,10 +36,6 @@ const Layout: React.FC = () => {
                   <User className="w-4 h-4 mr-2" />
                   Profile
                 </Link>
-                <Link to="/tools" className="border-transparent text-gray-500 dark:text-gray-300 hover:border-gray-300 dark:hover:border-dcc-system hover:text-gray-700 dark:hover:text-white inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors">
-                  <QrCode className="w-4 h-4 mr-2" />
-                  Tools
-                </Link>
               </div>
             </div>
             <div className="flex items-center space-x-2">
@@ -66,7 +62,6 @@ const Layout: React.FC = () => {
             <Link to="/quests/new" className="p-2 text-gray-500 dark:text-gray-400"><PlusCircle /></Link>
             <Link to="/achievements/new" className="p-2 text-gray-500 dark:text-gray-400"><Trophy /></Link>
             <Link to="/profile" className="p-2 text-gray-500 dark:text-gray-400"><User /></Link>
-            <Link to="/tools" className="p-2 text-gray-500 dark:text-gray-400"><QrCode /></Link>
         </div>
       </nav>
 
