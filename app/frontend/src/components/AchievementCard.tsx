@@ -53,10 +53,13 @@ const AchievementCard: React.FC<AchievementCardProps> = ({
                     </div>
 
                     {/* Body - QR Code */}
-                    <div className="flex-1 flex items-center justify-center relative z-10 p-4">
+                    <div className="flex-1 flex flex-col items-center justify-center relative z-10 p-4">
                         <div className="bg-white p-3 rounded-xl shadow-2xl border-4 border-gray-900">
                             <QRCodeSVG value={shareUrl} size={160} />
                         </div>
+                        <p className="mt-4 text-[10px] font-bold uppercase text-black tracking-widest bg-yellow-500 px-2 py-1 rounded border-2 border-black">
+                            Unlocked by {username}
+                        </p>
                     </div>
                     
                     {/* Footer */}
@@ -114,34 +117,27 @@ const AchievementCard: React.FC<AchievementCardProps> = ({
 
                 {/* Body */}
                 <div className="flex-1 p-3 flex flex-col gap-3 relative bg-gray-900 overflow-hidden">
-                    {/* User Quote */}
-                    <div className="bg-gray-800/80 p-2 rounded border-l-2 border-yellow-500">
-                        <p className="font-['Cormorant_Garamond'] text-xs italic text-gray-300 leading-relaxed">
-                            <span className={`text-yellow-500 font-bold not-italic mr-1`}>{username}:</span>
-                            "{achievement.context}"
-                        </p>
-                    </div>
-                    
                     {/* AI Description */}
-                    {achievement.ai_description && (
-                        <div className="font-['Cormorant_Garamond'] text-sm text-gray-200 leading-relaxed line-clamp-4 border-t border-gray-800 pt-2">
-                            {achievement.ai_description}
-                        </div>
-                    )}
+                    <div className="font-['Cormorant_Garamond'] text-sm text-gray-200 leading-relaxed line-clamp-6">
+                        {achievement.ai_description || achievement.context}
+                    </div>
                 </div>
 
                 {/* Footer */}
                 <div className={`bg-gray-900 border-t-2 border-yellow-600 min-h-[40px] flex items-center justify-between px-3 py-2 relative z-10`}>
-                    <div className="flex-1 flex flex-col justify-center">
+                    <div className="flex-1 flex flex-col justify-center max-w-[80%]">
                         {achievement.ai_reward && (
-                            <div className="flex flex-col mb-1">
+                            <div className="flex flex-col mb-2 pb-2 border-b border-gray-800">
                                 <div className="text-[8px] text-yellow-500 uppercase font-bold tracking-widest">Reward</div>
                                 <div className="text-[10px] font-bold text-white truncate font-['Cinzel']" title={achievement.ai_reward}>{achievement.ai_reward}</div>
                             </div>
                         )}
-                        <div className="text-[9px] text-gray-400 font-mono">
-                            {new Date(achievement.date_completed).toLocaleDateString()}
+                        <div className="text-[9px] text-gray-400 font-mono leading-tight">
+                            AWARDED TO <span className="font-black text-yellow-500 text-[11px]">{username.toUpperCase()}</span> ON {new Date(achievement.date_completed).toLocaleDateString()}
                         </div>
+                        <span className="text-[6px] text-gray-600 mt-1 leading-tight font-mono">
+                            FINE PRINT: ACHIEVEMENT HAS NO CASH VALUE. MANAGEMENT DENIES ALL KNOWLEDGE OF HOW THIS WAS ACCOMPLISHED.
+                        </span>
                     </div>
                     <div className="flex gap-2 ml-2 print:hidden">
                         {!hideActions && (

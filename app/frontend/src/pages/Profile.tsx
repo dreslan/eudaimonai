@@ -261,7 +261,11 @@ const Profile: React.FC = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 justify-items-center">
                     {filteredQuests.map(quest => (
                         <div key={quest.id} className="relative group">
-                            <QuestCard quest={quest} className={quest.is_hidden ? 'opacity-75' : ''} />
+                            <QuestCard 
+                                quest={quest} 
+                                username={profile?.display_name || profile?.username}
+                                className={quest.is_hidden ? 'opacity-75' : ''} 
+                            />
                             <button
                                 onClick={(e) => toggleQuestVisibility(e, quest)}
                                 className="absolute top-2 right-2 z-20 p-2 rounded-full bg-gray-900/80 text-white hover:bg-gray-800 opacity-0 group-hover:opacity-100 transition-opacity shadow-lg border border-gray-700"

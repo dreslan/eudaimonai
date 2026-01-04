@@ -45,11 +45,13 @@ const PrintView: React.FC = () => {
                     <div className="flex flex-col md:flex-row print:flex-row gap-8 print:gap-4 items-center">
                         <QuestCard 
                             quest={data as Quest} 
+                            username={user?.display_name || user?.username}
                             forceFace="front"
                             hideActions={true}
                         />
                         <QuestCard 
                             quest={data as Quest} 
+                            username={user?.display_name || user?.username}
                             forceFace="back"
                             hideActions={true}
                         />

@@ -8,6 +8,7 @@ import { getAsciiArt } from '../utils/ascii';
 
 interface QuestCardProps {
     quest: Quest;
+    username?: string;
     className?: string;
     forceFace?: 'front' | 'back';
     hideActions?: boolean;
@@ -15,6 +16,7 @@ interface QuestCardProps {
 
 const QuestCard: React.FC<QuestCardProps> = ({ 
     quest, 
+    username = 'Crawler',
     className = '',
     forceFace,
     hideActions = false
@@ -56,10 +58,13 @@ const QuestCard: React.FC<QuestCardProps> = ({
                 </div>
 
                 {/* Body - QR Code */}
-                <div className="flex-1 flex items-center justify-center relative z-10 p-4">
+                <div className="flex-1 flex flex-col items-center justify-center relative z-10 p-4">
                     <div className="bg-white p-3 rounded-xl shadow-2xl border-4 border-gray-900">
                         <QRCodeSVG value={questUrl} size={160} />
                     </div>
+                    <p className={`mt-4 text-[10px] font-bold uppercase text-white tracking-widest bg-${theme.base}-600 px-2 py-1 rounded border-2 ${theme.border400} shadow-lg`}>
+                        ISSUED TO {username}
+                    </p>
                 </div>
                 
                 {/* Footer */}
@@ -140,10 +145,12 @@ const QuestCard: React.FC<QuestCardProps> = ({
 
                 {/* Footer */}
                 <div className={`bg-gray-900 p-3 border-t-2 ${theme.border900} flex justify-between items-center relative z-10`}>
-                    <div className="flex flex-col">
-                        <span className="text-[9px] text-gray-500 uppercase tracking-widest">Status</span>
-                        <span className={`text-xs font-bold uppercase ${quest.status === 'active' ? 'text-green-400' : 'text-gray-400'}`}>
-                            {quest.status}
+                    <div className="flex flex-col max-w-[80%]">
+                        <span className="text-[9px] text-gray-400 uppercase tracking-widest leading-tight">
+                            <span className={`font-black ${theme.text400} text-[11px]`}>{username}</span> WAS ISSUED THIS QUEST ON {new Date(quest.created_at).toLocaleDateString()}
+                        </span>
+                        <span className="text-[6px] text-gray-600 mt-1 leading-tight font-mono">
+                            FINE PRINT: QUEST IS NON-REFUNDABLE. GOBLINS WILL EAT YOU IF YOU DO NOT COMPLETE IT. THOSE ARE THE RULES.
                         </span>
                     </div>
                     
