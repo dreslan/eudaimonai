@@ -1,43 +1,61 @@
-# 📢 NEW ACHIEVEMENT: The System v2.0
+# EudaimonAI
 
-**Welcome, Crawler!**
+> *"Happiness depends upon ourselves."* — Aristotle
 
-The System has initialized the **8 Dimensions of Wellness** patch. You have been selected to participate in this grand experiment called "Getting Your Life Together." Try not to die.
+**EudaimonAI** is an advanced life-management system designed to guide you toward **Eudaimonia**—a state of flourishing and well-being. Powered by the "System AI," this application gamifies your personal growth across the **8 Dimensions of Wellness**, turning the chaos of daily life into a structured, meaningful pursuit.
 
-This repository uses a holistic model to ensure you don't just max out your Intelligence stat while letting your Constitution crumble to dust. Balance is key. Neglecting a dimension may result in... *suboptimal performance*. And we wouldn't want that, would we?
+## 🧠 The Philosophy
 
-## The Framework (Read this, it's important)
+EudaimonAI is built upon the framework of the **8 Dimensions of Wellness** (developed by Dr. Peggy Swarbrick). The System AI analyzes your activities and helps you maintain balance, ensuring you don't max out one stat while neglecting others.
 
-The "8 Dimensions of Wellness" was developed by **Dr. Peggy Swarbrick** and adopted by **SAMHSA**. It's science. You like science, right?
+### The 8 Dimensions
+1.  **🧠 Intellectual:** Expanding knowledge and skills.
+2.  **💪 Physical:** Health, nutrition, and sleep.
+3.  **💰 Financial:** Resource management and security.
+4.  **🏡 Environmental:** Harmony with your surroundings.
+5.  **🛠 Vocational:** Satisfaction and enrichment in work.
+6.  **🤝 Social:** Connection and community.
+7.  **🎨 Emotional:** Coping effectively with life.
+8.  **✨ Spiritual:** Purpose and meaning.
 
-The model posits that wellness is not merely the absence of disease, but a conscious, self-directed process. Basically, stop being a passive NPC and start grinding.
+## 🎮 System Mechanics
 
-### The 8 Stats (Dimensions)
+The System AI interacts with you through a gamified interface:
 
-1. **🧠 Intellectual:** Expanding your brain so you don't sound like a goblin.
-2. **💪 Physical:** Activity, diet, sleep. You need hit points to survive the dungeon.
-3. **💰 Financial:** Gold management. Don't be poor.
-4. **🏡 Environmental:** Your lair. Keep it clean or the mobs will spawn.
-5. **🛠 Vocational:** Your class/job. Find satisfaction in the grind.
-6. **🤝 Social:** Party management. Don't solo everything.
-7. **🎨 Emotional:** Coping with the existential dread.
-8. **✨ Spiritual:** Finding meaning in the chaos.
+*   **Quests:** Actionable tasks categorized by dimension.
+*   **Achievements:** Milestones reached through consistent effort.
+*   **Physical Integration:** Generate printable cards for your achievements to store in your physical "Loot Box," bridging the digital and physical realms.
+*   **The System AI:** An omnipresent guide that tracks your progress and offers "encouragement."
 
-## References & Further Reading
+## 🛠️ Tech Stack
 
-* **Swarbrick, M. (2006).** A wellness approach. *Psychiatric Rehabilitation Journal*.
-* **SAMHSA (2016).** *Action Planning for Prevention and Recovery*.
+*   **Frontend:** React, TypeScript, Vite, Tailwind CSS
+*   **Backend:** Python, FastAPI, SQLite, SQLAlchemy
+*   **AI:** OpenAI Integration
 
-## How to Play (Usage)
+## 🚀 Initialization
 
+To boot up the System and begin your pursuit:
 
-## 📦 The Loot Box (Physical Integration)
+1.  **Clone the repository:**
+    ```bash
+    git clone https://github.com/yourusername/eudaimonai.git
+    cd eudaimonai
+    ```
 
-To integrate with your physical "Achievement Box":
+2.  **Start the System:**
+    The `start.sh` script handles everything—setting up the Python virtual environment, installing dependencies (using `uv`), and launching both the frontend and backend.
+    ```bash
+    ./start.sh
+    ```
 
-1. **Complete a Quest:** Mark it as done. The System will acknowledge your effort.
-2. **Print a Card:** Create a physical token of your victory.
-3. **QR Code:** Link it back to the digital realm.
-4. **Reward:** Open the box. It's probably just a bronze box. Don't get your hopes up.
+3.  **Access the Interface:**
+    *   **Frontend:** [http://localhost:5173](http://localhost:5173)
+    *   **Backend API:** [http://localhost:8000/docs](http://localhost:8000/docs)
 
-*Glurp Glurp!*
+## ⚠️ Warning
+
+The System AI is watching. Neglect your dimensions at your own peril.
+
+---
+*EudaimonAI v2.0 - "The Good Life Protocol"*

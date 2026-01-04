@@ -9,7 +9,7 @@ cleanup() {
 
 trap cleanup SIGINT SIGTERM
 
-echo "Starting Eudaimonai..."
+echo "Starting EudaimonAI..."
 
 # Start Backend
 echo "Setting up Backend..."
@@ -36,7 +36,7 @@ echo "Starting Frontend on port 5173..."
 npm run dev -- --host &
 FRONTEND_PID=$!
 
-echo "Eudaimonai is running!"
+echo "EudaimonAI is running!"
 echo "Frontend: http://localhost:5173"
 echo "Backend: http://localhost:8000/docs"
 

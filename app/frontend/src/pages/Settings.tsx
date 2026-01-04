@@ -80,7 +80,7 @@ const Settings: React.FC = () => {
       const dataStr = JSON.stringify({ user, quests, achievements }, null, 2);
       const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
       
-      const exportFileDefaultName = 'questvault_data.json';
+      const exportFileDefaultName = 'eudaimonai_data.json';
       
       const linkElement = document.createElement('a');
       linkElement.setAttribute('href', dataUri);

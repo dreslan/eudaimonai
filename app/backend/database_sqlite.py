@@ -6,7 +6,7 @@ from typing import List, Dict, Any, Optional
 import json
 import os
 
-SQLITE_FILE = "questvault.db"
+SQLITE_FILE = "eudaimonai.db"
 
 class SqliteDatabase:
     def __init__(self):

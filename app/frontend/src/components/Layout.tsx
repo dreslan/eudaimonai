@@ -16,7 +16,7 @@ const Layout: React.FC = () => {
             <div className="flex">
               <div className="flex-shrink-0 flex items-center">
                 <span className="font-black text-xl text-orange-600 dark:text-dcc-system tracking-wider uppercase">
-                    QuestVault <span className="text-xs align-top opacity-70">SYS</span>
+                    EudaimonAI <span className="text-xs align-top opacity-70">SYS</span>
                 </span>
               </div>
               <div className="hidden sm:ml-6 sm:flex sm:space-x-8">

@@ -16,7 +16,7 @@ const PublicLayout: React.FC = () => {
             <div className="flex">
               <div className="flex-shrink-0 flex items-center">
                 <Link to="/" className="font-black text-xl text-orange-600 dark:text-dcc-system tracking-wider uppercase">
-                    QuestVault <span className="text-xs align-top opacity-70">PUB</span>
+                    EudaimonAI <span className="text-xs align-top opacity-70">PUB</span>
                 </Link>
               </div>
               {user && (

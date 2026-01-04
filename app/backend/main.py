@@ -12,7 +12,7 @@ from auth import verify_password, get_password_hash, create_access_token, ACCESS
 from jose import JWTError, jwt
 from auth import SECRET_KEY, ALGORITHM
 
-app = FastAPI(title="QuestVault API")
+app = FastAPI(title="EudaimonAI API")
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
@@ -68,7 +68,7 @@ def register_user(user: UserCreate):
 
 @app.get("/")
 def read_root():
-    return {"message": "Welcome to QuestVault API"}
+    return {"message": "Welcome to EudaimonAI API"}
 
 @app.get("/quests", response_model=List[Quest])
 def get_quests(current_user: UserInDB = Depends(get_current_user)):
