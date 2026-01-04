@@ -108,12 +108,12 @@ const AchievementCard: React.FC<AchievementCardProps> = ({
                             <h3 className="font-['Cinzel'] font-bold text-sm leading-tight text-white drop-shadow-md line-clamp-2 min-h-[1.25em]" title={achievement.title}>
                                 {achievement.title}
                             </h3>
-                            <div className="flex items-center gap-2 mt-1">
-                                <div className={`flex items-center justify-center w-5 h-5 rounded-full bg-black/30 ${theme.text200} border ${theme.border500} border-opacity-30 shadow-sm`}>
+                            <div className="flex items-start gap-2 mt-1">
+                                <div className={`flex-shrink-0 flex items-center justify-center w-5 h-5 rounded-full bg-black/30 ${theme.text200} border ${theme.border500} border-opacity-30 shadow-sm`}>
                                     <Icon size={12} strokeWidth={2.5} />
                                 </div>
                                 {questTitle && (
-                                    <span className={`text-[9px] font-bold uppercase tracking-widest text-yellow-500 truncate max-w-[120px]`}>
+                                    <span className={`text-[9px] font-bold uppercase tracking-widest text-yellow-500 line-clamp-2 leading-tight pt-0.5`}>
                                         • {questTitle}
                                     </span>
                                 )}
