@@ -121,6 +121,39 @@ def update_quest(quest_id: str, update_data: QuestUpdate, current_user: UserInDB
         if non_hidden_updates:
              raise HTTPException(status_code=400, detail="Cannot edit a completed quest.")
 
+    # State Transition Rules
+    if 'status' in updated_fields and updated_fields['status'] != current_quest.status:
+        new_status = updated_fields['status']
+        old_status = current_quest.status
+        
+        if old_status == 'backlog':
+            if new_status == 'completed':
+                raise HTTPException(status_code=400, detail="Backlog quests must be started (Active) before they can be completed.")
+            
+            if new_status == 'active':
+                # Auto-generate "Quest Started" achievement
+                achievement_data = AchievementCreate(
+                    title=f"Quest Started: {current_quest.title}",
+                    context=f"Began the quest '{current_quest.title}'. Time to suffer.",
+                    date_completed=datetime.now(timezone.utc),
+                    dimension=current_quest.dimension,
+                    quest_id=current_quest.id
+                )
+                new_ach = Achievement(**achievement_data.model_dump(), user_id=current_user.id)
+                
+                # Mock AI parts for start
+                if not new_ach.image_url:
+                    new_ach.image_url = "https://source.unsplash.com/random/300x400?fantasy,start"
+                
+                new_ach.ai_description = f"The Crawler has accepted the quest '{current_quest.title}'. Let's see how long they last."
+                new_ach.ai_reward = "The reward of participation."
+                    
+                db.add_achievement(new_ach)
+
+        if old_status == 'active':
+            if new_status == 'backlog':
+                raise HTTPException(status_code=400, detail="Active quests cannot be moved back to the backlog. Commit or fail.")
+
     # Update fields
     quest_data = current_quest.model_dump()
     quest_data.update(updated_fields)

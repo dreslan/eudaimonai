@@ -220,9 +220,21 @@ const Dashboard: React.FC = () => {
                                 disabled={quest.status === 'completed'}
                                 className={`text-xs border-none bg-transparent text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white cursor-pointer focus:ring-0 ${quest.status === 'completed' ? 'opacity-50 cursor-not-allowed' : ''}`}
                             >
-                                <option value="active">Active</option>
-                                <option value="backlog">Backlog</option>
-                                <option value="completed">Completed</option>
+                                {quest.status === 'backlog' && (
+                                    <>
+                                        <option value="backlog">Backlog</option>
+                                        <option value="active">Active</option>
+                                    </>
+                                )}
+                                {quest.status === 'active' && (
+                                    <>
+                                        <option value="active">Active</option>
+                                        <option value="completed">Completed</option>
+                                    </>
+                                )}
+                                {quest.status === 'completed' && (
+                                    <option value="completed">Completed</option>
+                                )}
                             </select>
                         </div>
                     </div>
@@ -267,9 +279,21 @@ const Dashboard: React.FC = () => {
                                                 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
                                             }`}
                                         >
-                                            <option value="active">Active</option>
-                                            <option value="backlog">Backlog</option>
-                                            <option value="completed">Completed</option>
+                                            {quest.status === 'backlog' && (
+                                                <>
+                                                    <option value="backlog">Backlog</option>
+                                                    <option value="active">Active</option>
+                                                </>
+                                            )}
+                                            {quest.status === 'active' && (
+                                                <>
+                                                    <option value="active">Active</option>
+                                                    <option value="completed">Completed</option>
+                                                </>
+                                            )}
+                                            {quest.status === 'completed' && (
+                                                <option value="completed">Completed</option>
+                                            )}
                                         </select>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
