@@ -16,6 +16,7 @@ const Profile: React.FC = () => {
   const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'quests' | 'achievements' | 'settings'>('quests');
+  const [questFilter, setQuestFilter] = useState<'all' | 'active' | 'completed'>('all');
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
   const [searchTerm, setSearchTerm] = useState('');
   const [isEditingProfile, setIsEditingProfile] = useState(false);
@@ -92,10 +93,12 @@ const Profile: React.FC = () => {
 
   if (loading || !profile) return <div className="text-center py-10 text-gray-500 dark:text-gray-400">Loading profile...</div>;
 
-  const filteredQuests = quests.filter(q => 
-    q.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    (q.dimension || '').toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredQuests = quests.filter(q => {
+    const matchesSearch = q.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                          (q.dimension || '').toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesFilter = questFilter === 'all' || q.status === questFilter;
+    return matchesSearch && matchesFilter;
+  });
 
   const filteredAchievements = achievements.filter(a => 
     a.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
@@ -155,18 +158,27 @@ const Profile: React.FC = () => {
         </div>
         
         <div className="grid grid-cols-3 gap-4 mt-6 border-t dark:border-gray-700 pt-6">
-          <div>
-            <div className="text-2xl font-bold text-gray-900 dark:text-white">{profile.stats?.quests_active || 0}</div>
+          <button 
+            onClick={() => { setActiveTab('quests'); setQuestFilter('active'); }}
+            className="group hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg p-2 transition-colors"
+          >
+            <div className="text-2xl font-bold text-gray-900 dark:text-white group-hover:text-orange-600 dark:group-hover:text-dcc-system transition-colors">{profile.stats?.quests_active || 0}</div>
             <div className="text-sm text-gray-500 dark:text-gray-400">Active Quests</div>
-          </div>
-          <div>
-            <div className="text-2xl font-bold text-gray-900 dark:text-white">{profile.stats?.quests_completed || 0}</div>
+          </button>
+          <button 
+            onClick={() => { setActiveTab('quests'); setQuestFilter('completed'); }}
+            className="group hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg p-2 transition-colors"
+          >
+            <div className="text-2xl font-bold text-gray-900 dark:text-white group-hover:text-orange-600 dark:group-hover:text-dcc-system transition-colors">{profile.stats?.quests_completed || 0}</div>
             <div className="text-sm text-gray-500 dark:text-gray-400">Completed</div>
-          </div>
-          <div>
-            <div className="text-2xl font-bold text-gray-900 dark:text-white">{profile.stats?.achievements_unlocked || 0}</div>
+          </button>
+          <button 
+            onClick={() => setActiveTab('achievements')}
+            className="group hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg p-2 transition-colors"
+          >
+            <div className="text-2xl font-bold text-gray-900 dark:text-white group-hover:text-orange-600 dark:group-hover:text-dcc-system transition-colors">{profile.stats?.achievements_unlocked || 0}</div>
             <div className="text-sm text-gray-500 dark:text-gray-400">Achievements</div>
-          </div>
+          </button>
         </div>
       </div>
 
@@ -229,6 +241,17 @@ const Profile: React.FC = () => {
             {/* Search & View Toggle */}
             {activeTab !== 'settings' && (
             <div className="flex items-center space-x-4 w-full sm:w-auto">
+                {activeTab === 'quests' && (
+                    <select
+                        value={questFilter}
+                        onChange={(e) => setQuestFilter(e.target.value as 'all' | 'active' | 'completed')}
+                        className="block w-32 pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                    >
+                        <option value="all">All Status</option>
+                        <option value="active">Active</option>
+                        <option value="completed">Completed</option>
+                    </select>
+                )}
                 <div className="relative flex-1 sm:flex-none">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                         <Search className="h-4 w-4 text-gray-400" />
