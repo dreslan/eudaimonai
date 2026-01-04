@@ -1,5 +1,19 @@
 export type Dimension = 'intellectual' | 'physical' | 'financial' | 'environmental' | 'vocational' | 'social' | 'emotional' | 'spiritual';
-export type Status = 'active' | 'backlog' | 'maybe' | 'completed';
+export type Status = 'active' | 'backlog' | 'completed';
+
+export interface User {
+    id: string;
+    username: string;
+    display_name?: string;
+    email?: string;
+    openai_api_key?: string;
+    level?: number;
+    stats?: {
+        quests_active: number;
+        quests_completed: number;
+        achievements_unlocked: number;
+    };
+}
 
 export interface Quest {
     id: string;
@@ -11,6 +25,7 @@ export interface Quest {
     progress: number;
     victory_condition?: string;
     is_hidden?: boolean;
+    due_date?: string;
 }
 
 export interface QuestCreate {
@@ -19,6 +34,7 @@ export interface QuestCreate {
     status?: Status;
     tags?: string[];
     victory_condition?: string;
+    due_date?: string;
 }
 
 export interface Achievement {

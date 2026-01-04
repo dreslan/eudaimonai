@@ -6,6 +6,7 @@ import { ArrowLeft, Edit, Trash2, Plus, LayoutGrid, List, Calendar } from 'lucid
 import { useAuth } from '../context/AuthContext';
 import AchievementCard from '../components/AchievementCard';
 import Timeline from '../components/Timeline';
+import DimensionBadge from '../components/DimensionBadge';
 
 const QuestDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -15,30 +16,29 @@ const QuestDetail: React.FC = () => {
   const [linkedAchievements, setLinkedAchievements] = useState<Achievement[]>([]);
   const [viewMode, setViewMode] = useState<'timeline' | 'grid' | 'table'>('timeline');
 
-  const fetchData = async () => {
-    try {
-      const questRes = await axios.get(`http://localhost:8000/quests/${id}`);
-      setQuest(questRes.data);
-      
-      const achievementsRes = await axios.get('http://localhost:8000/achievements');
-      
-      // Sort: Date Ascending, then Creation Order (Index) Ascending
-      const linked = achievementsRes.data
-        .map((a: Achievement, index: number) => ({ ...a, _originalIndex: index }))
-        .filter((a: any) => a.quest_id === id)
-        .sort((a: any, b: any) => {
-            const dateDiff = new Date(a.date_completed).getTime() - new Date(b.date_completed).getTime();
-            if (dateDiff !== 0) return dateDiff;
-            return a._originalIndex - b._originalIndex;
-        });
-        
-      setLinkedAchievements(linked);
-    } catch (error) {
-      console.error("Error fetching quest details", error);
-    }
-  };
-
   useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const questRes = await axios.get(`http://localhost:8000/quests/${id}`);
+        setQuest(questRes.data);
+        
+        const achievementsRes = await axios.get('http://localhost:8000/achievements');
+        
+        // Sort: Date Ascending, then Creation Order (Index) Ascending
+        const linked = achievementsRes.data
+          .map((a: Achievement, index: number) => ({ ...a, _originalIndex: index }))
+          .filter((a: Achievement & { _originalIndex: number }) => a.quest_id === id)
+          .sort((a: Achievement & { _originalIndex: number }, b: Achievement & { _originalIndex: number }) => {
+              const dateDiff = new Date(a.date_completed).getTime() - new Date(b.date_completed).getTime();
+              if (dateDiff !== 0) return dateDiff;
+              return a._originalIndex - b._originalIndex;
+          });
+          
+        setLinkedAchievements(linked);
+      } catch (error) {
+        console.error("Error fetching quest details", error);
+      }
+    };
     fetchData();
   }, [id]);
 
@@ -79,13 +79,11 @@ const QuestDetail: React.FC = () => {
                 className={`text-sm font-semibold rounded-md px-3 py-2 border-0 cursor-pointer focus:ring-2 focus:ring-orange-500 ${
                     quest.status === 'active' ? 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200' :
                     quest.status === 'completed' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' :
-                    quest.status === 'backlog' ? 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300' :
-                    'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
+                    'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
                 }`}
             >
                 <option value="active">Active</option>
                 <option value="backlog">Backlog</option>
-                <option value="maybe">Maybe</option>
                 <option value="completed">Completed</option>
             </select>
 
@@ -110,9 +108,7 @@ const QuestDetail: React.FC = () => {
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{quest.title}</h1>
             <div className="mt-2 flex flex-wrap gap-2">
                 {quest.dimension && (
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
-                        {quest.dimension}
-                    </span>
+                    <DimensionBadge dimension={quest.dimension} />
                 )}
                 {quest.tags && quest.tags.map(tag => (
                     <span key={tag} className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300">

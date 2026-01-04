@@ -34,14 +34,17 @@ const NewAchievement: React.FC = () => {
     if (questIdParam && quests.length > 0) {
         const selectedQuest = quests.find(q => q.id === questIdParam);
         if (selectedQuest) {
-             setFormData(prev => ({ 
-                ...prev, 
-                quest_id: questIdParam,
-                dimension: selectedQuest.dimension 
-            }));
+            if (formData.quest_id !== questIdParam || formData.dimension !== selectedQuest.dimension) {
+                 // eslint-disable-next-line
+                 setFormData(prev => ({ 
+                    ...prev, 
+                    quest_id: questIdParam,
+                    dimension: selectedQuest.dimension 
+                }));
+            }
         }
     }
-  }, [questIdParam, quests]);
+  }, [questIdParam, quests, formData.quest_id, formData.dimension]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;

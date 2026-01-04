@@ -6,10 +6,11 @@ import uuid
 class QuestBase(BaseModel):
     title: str
     dimension: Optional[Literal['intellectual', 'physical', 'financial', 'environmental', 'vocational', 'social', 'emotional', 'spiritual']] = None
-    status: Literal['active', 'backlog', 'maybe', 'completed'] = 'active'
+    status: Literal['active', 'backlog', 'completed'] = 'active'
     tags: List[str] = []
     victory_condition: Optional[str] = None
     is_hidden: bool = False
+    due_date: Optional[datetime] = None
 
 class QuestCreate(QuestBase):
     pass
@@ -20,6 +21,7 @@ class QuestUpdate(BaseModel):
     progress: Optional[int] = None
     victory_condition: Optional[str] = None
     is_hidden: Optional[bool] = None
+    due_date: Optional[datetime] = None
 
 class Quest(QuestBase):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))

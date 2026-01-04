@@ -53,6 +53,7 @@ class SqliteDatabase:
                 tags=json.dumps(quest.tags),
                 victory_condition=quest.victory_condition,
                 is_hidden=quest.is_hidden,
+                due_date=quest.due_date,
                 created_at=quest.created_at,
                 progress=quest.progress
             )
@@ -120,6 +121,7 @@ class SqliteDatabase:
                 quest_db.tags = json.dumps(quest.tags)
                 quest_db.victory_condition = quest.victory_condition
                 quest_db.is_hidden = quest.is_hidden
+                quest_db.due_date = quest.due_date
                 quest_db.progress = quest.progress
                 # created_at and user_id should not change
                 session.commit()

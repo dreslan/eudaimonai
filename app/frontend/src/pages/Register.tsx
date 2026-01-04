@@ -16,8 +16,12 @@ const Register: React.FC = () => {
     try {
       await axios.post('http://localhost:8000/register', { username, password });
       navigate('/login');
-    } catch (err: any) {
-      setError(err.response?.data?.detail || 'Error registering');
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err)) {
+        setError(err.response?.data?.detail || 'Error registering');
+      } else {
+        setError('Error registering');
+      }
     }
   };
 

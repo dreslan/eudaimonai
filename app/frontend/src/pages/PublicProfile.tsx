@@ -1,14 +1,20 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useParams, Link } from 'react-router-dom';
-import type { Achievement, Quest } from '../types';
+import type { Achievement, Quest, User } from '../types';
 import { LayoutGrid, List, Search, Skull } from 'lucide-react';
 import QuestCard from '../components/QuestCard';
 import AchievementCard from '../components/AchievementCard';
 
+interface PublicProfileData extends User {
+    quests: Quest[];
+    achievements: Achievement[];
+    recent_achievements?: Achievement[];
+}
+
 const PublicProfile: React.FC = () => {
   const { username } = useParams<{ username: string }>();
-  const [profile, setProfile] = useState<any>(null);
+  const [profile, setProfile] = useState<PublicProfileData | null>(null);
   const [quests, setQuests] = useState<Quest[]>([]);
   const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [loading, setLoading] = useState(true);
@@ -52,19 +58,19 @@ const PublicProfile: React.FC = () => {
         </div>
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{profile.display_name || profile.username}</h1>
         {profile.display_name && <p className="text-sm text-gray-500 dark:text-gray-400">@{profile.username}</p>}
-        <p className="text-gray-500 dark:text-gray-400 mt-1">Level {profile.level} Adventurer</p>
+        <p className="text-gray-500 dark:text-gray-400 mt-1">Level {profile.level || 1} Adventurer</p>
         
         <div className="grid grid-cols-3 gap-4 mt-6 border-t dark:border-gray-700 pt-6">
           <div>
-            <div className="text-2xl font-bold text-gray-900 dark:text-white">{profile.stats.quests_active}</div>
+            <div className="text-2xl font-bold text-gray-900 dark:text-white">{profile.stats?.quests_active || 0}</div>
             <div className="text-sm text-gray-500 dark:text-gray-400">Active Quests</div>
           </div>
           <div>
-            <div className="text-2xl font-bold text-gray-900 dark:text-white">{profile.stats.quests_completed}</div>
+            <div className="text-2xl font-bold text-gray-900 dark:text-white">{profile.stats?.quests_completed || 0}</div>
             <div className="text-sm text-gray-500 dark:text-gray-400">Completed</div>
           </div>
           <div>
-            <div className="text-2xl font-bold text-gray-900 dark:text-white">{profile.stats.achievements_unlocked}</div>
+            <div className="text-2xl font-bold text-gray-900 dark:text-white">{profile.stats?.achievements_unlocked || 0}</div>
             <div className="text-sm text-gray-500 dark:text-gray-400">Achievements</div>
           </div>
         </div>

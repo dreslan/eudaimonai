@@ -1,16 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
-import type { Achievement, Quest } from '../types';
+import type { Achievement, Quest, User } from '../types';
 import { LayoutGrid, List, Search, Eye, EyeOff, Skull, Edit2, Check, Printer, Download, Shield, Sparkles } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import QuestCard from '../components/QuestCard';
 import AchievementCard from '../components/AchievementCard';
+import DimensionBadge from '../components/DimensionBadge';
 import { QRCodeSVG } from 'qrcode.react';
 
 const Profile: React.FC = () => {
   const { updateUser } = useAuth();
-  const [profile, setProfile] = useState<any>(null);
+  const [profile, setProfile] = useState<User | null>(null);
   const [quests, setQuests] = useState<Quest[]>([]);
   const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [loading, setLoading] = useState(true);
@@ -48,12 +49,13 @@ const Profile: React.FC = () => {
   }, []);
 
   const handleUpdateProfile = async () => {
+    if (!profile) return;
     try {
       const res = await axios.put('http://localhost:8000/profile', { 
           display_name: displayName,
           openai_api_key: apiKey
       });
-      const updatedProfile = { 
+      const updatedProfile: User = { 
           ...profile, 
           display_name: res.data.display_name,
           openai_api_key: res.data.openai_api_key
@@ -144,7 +146,7 @@ const Profile: React.FC = () => {
             )}
         </div>
         
-        <p className="text-gray-500 dark:text-gray-400">Level {profile.level} Crawler</p>
+        <p className="text-gray-500 dark:text-gray-400">Level {profile.level || 1} Crawler</p>
         
         <div className="mt-4">
             <Link to={`/public/${profile.username}`} className="text-sm text-orange-600 dark:text-dcc-system hover:underline flex items-center justify-center gap-1">
@@ -154,15 +156,15 @@ const Profile: React.FC = () => {
         
         <div className="grid grid-cols-3 gap-4 mt-6 border-t dark:border-gray-700 pt-6">
           <div>
-            <div className="text-2xl font-bold text-gray-900 dark:text-white">{profile.stats.quests_active}</div>
+            <div className="text-2xl font-bold text-gray-900 dark:text-white">{profile.stats?.quests_active || 0}</div>
             <div className="text-sm text-gray-500 dark:text-gray-400">Active Quests</div>
           </div>
           <div>
-            <div className="text-2xl font-bold text-gray-900 dark:text-white">{profile.stats.quests_completed}</div>
+            <div className="text-2xl font-bold text-gray-900 dark:text-white">{profile.stats?.quests_completed || 0}</div>
             <div className="text-sm text-gray-500 dark:text-gray-400">Completed</div>
           </div>
           <div>
-            <div className="text-2xl font-bold text-gray-900 dark:text-white">{profile.stats.achievements_unlocked}</div>
+            <div className="text-2xl font-bold text-gray-900 dark:text-white">{profile.stats?.achievements_unlocked || 0}</div>
             <div className="text-sm text-gray-500 dark:text-gray-400">Achievements</div>
           </div>
         </div>
@@ -305,7 +307,7 @@ const Profile: React.FC = () => {
                                         </span>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                                        {quest.dimension}
+                                        <DimensionBadge dimension={quest.dimension} />
                                     </td>
                                     <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400 max-w-xs truncate">
                                         {quest.victory_condition}

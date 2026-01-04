@@ -2,9 +2,10 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
 import type { Quest, Achievement, Status } from '../types';
-import { Circle, LayoutGrid, List, Archive, CheckCircle, HelpCircle, Search, ArrowRight } from 'lucide-react';
+import { Circle, LayoutGrid, List, Archive, CheckCircle, Search, ArrowRight } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import QuestCard from '../components/QuestCard';
+import DimensionBadge from '../components/DimensionBadge';
 import Landing from './Landing';
 
 const Dashboard: React.FC = () => {
@@ -66,7 +67,6 @@ const Dashboard: React.FC = () => {
       { id: 'active', label: 'Active', icon: Circle, color: 'text-orange-500' },
       { id: 'backlog', label: 'Backlog', icon: Archive, color: 'text-gray-500' },
       { id: 'completed', label: 'Completed', icon: CheckCircle, color: 'text-green-500' },
-      { id: 'maybe', label: 'Maybe', icon: HelpCircle, color: 'text-blue-500' },
       { id: 'all', label: 'All', icon: LayoutGrid, color: 'text-purple-500' },
   ];
 
@@ -155,7 +155,6 @@ const Dashboard: React.FC = () => {
                             >
                                 <option value="active">Active</option>
                                 <option value="backlog">Backlog</option>
-                                <option value="maybe">Maybe</option>
                                 <option value="completed">Completed</option>
                             </select>
                         </div>
@@ -170,6 +169,7 @@ const Dashboard: React.FC = () => {
                             <tr>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Title</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Dimension</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Due Date</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
                                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
                             </tr>
@@ -184,7 +184,10 @@ const Dashboard: React.FC = () => {
                                         </Link>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                                        {quest.dimension}
+                                        <DimensionBadge dimension={quest.dimension} />
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                                        {quest.due_date ? new Date(quest.due_date).toLocaleDateString() : <span className="italic text-xs opacity-50">Heat death of universe</span>}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <select 
@@ -193,13 +196,11 @@ const Dashboard: React.FC = () => {
                                             className={`text-xs font-semibold rounded-full px-2 py-1 border-0 cursor-pointer focus:ring-2 focus:ring-orange-500 ${
                                                 quest.status === 'active' ? 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200' :
                                                 quest.status === 'completed' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' :
-                                                quest.status === 'backlog' ? 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300' :
-                                                'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
+                                                'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
                                             }`}
                                         >
                                             <option value="active">Active</option>
                                             <option value="backlog">Backlog</option>
-                                            <option value="maybe">Maybe</option>
                                             <option value="completed">Completed</option>
                                         </select>
                                     </td>

@@ -115,6 +115,36 @@ const NewQuest: React.FC = () => {
             </div>
         </div>
 
+        {/* Status & Due Date */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Status</label>
+                <select
+                    name="status"
+                    value={formData.status || 'active'}
+                    onChange={handleChange}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm p-2 border dark:bg-gray-800 dark:border-gray-600 dark:text-white"
+                >
+                    <option value="active">Active</option>
+                    <option value="backlog">Backlog</option>
+                    <option value="completed">Completed</option>
+                </select>
+            </div>
+            <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Due Date</label>
+                <input
+                    type="datetime-local"
+                    name="due_date"
+                    value={formData.due_date ? new Date(formData.due_date).toISOString().slice(0, 16) : ''}
+                    onChange={handleChange}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm p-2 border dark:bg-gray-800 dark:border-gray-600 dark:text-white"
+                />
+                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                    {formData.due_date ? '' : 'Default: Heat death of the universe'}
+                </p>
+            </div>
+        </div>
+
         {/* Victory Condition */}
         <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Victory Condition (Definition of Done)</label>

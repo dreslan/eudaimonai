@@ -29,6 +29,7 @@ class QuestDB(Base):
     tags = Column(Text, default="[]") # Stored as JSON string
     victory_condition = Column(String, nullable=True)
     is_hidden = Column(Boolean, default=False)
+    due_date = Column(DateTime, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     progress = Column(Integer, default=0)
 

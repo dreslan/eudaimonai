@@ -23,7 +23,8 @@ const Login: React.FC = () => {
       const response = await axios.post('http://localhost:8000/token', formData);
       login(response.data.access_token);
       navigate('/');
-    } catch (err) {
+    } catch (err: unknown) {
+      console.error(err);
       setError('Invalid username or password');
     }
   };
