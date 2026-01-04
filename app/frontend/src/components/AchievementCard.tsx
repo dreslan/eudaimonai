@@ -60,6 +60,9 @@ const AchievementCard: React.FC<AchievementCardProps> = ({
                         <p className="mt-4 text-[10px] font-bold uppercase text-black tracking-widest bg-yellow-500 px-2 py-1 rounded border-2 border-black">
                             Unlocked by {username}
                         </p>
+                        <p className="mt-2 text-[10px] font-mono text-black/70 uppercase tracking-widest">
+                            Scan to redeem cash value
+                        </p>
                     </div>
                     
                     {/* Footer */}
