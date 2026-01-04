@@ -2,9 +2,10 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
 import type { Quest, Achievement, Status } from '../types';
-import { Circle, LayoutGrid, List, Archive, CheckCircle, Search, ArrowRight } from 'lucide-react';
+import { Circle, LayoutGrid, List, Archive, History, Trophy, Search, ArrowRight } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import QuestCard from '../components/QuestCard';
+import AchievementCard from '../components/AchievementCard';
 import DimensionBadge from '../components/DimensionBadge';
 import Landing from './Landing';
 
@@ -12,7 +13,7 @@ const Dashboard: React.FC = () => {
   const [quests, setQuests] = useState<Quest[]>([]);
   const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<Status | 'all'>('active');
+  const [activeTab, setActiveTab] = useState<Status | 'all' | 'achievements'>('active');
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
   const [searchTerm, setSearchTerm] = useState('');
   const { user } = useAuth();
@@ -63,11 +64,18 @@ const Dashboard: React.FC = () => {
       return matchesTab && matchesSearch;
   });
 
+  const filteredAchievements = achievements.filter(a => {
+      const matchesSearch = a.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                            (a.dimension || '').toLowerCase().includes(searchTerm.toLowerCase());
+      return matchesSearch;
+  });
+
   const tabs = [
-      { id: 'active', label: 'Active', icon: Circle, color: 'text-orange-500' },
-      { id: 'backlog', label: 'Backlog', icon: Archive, color: 'text-gray-500' },
-      { id: 'completed', label: 'Completed', icon: CheckCircle, color: 'text-green-500' },
-      { id: 'all', label: 'All', icon: LayoutGrid, color: 'text-purple-500' },
+      { id: 'active', label: 'Active', icon: Circle, color: 'text-orange-500', count: quests.filter(q => q.status === 'active').length },
+      { id: 'backlog', label: 'Backlog', icon: Archive, color: 'text-gray-500', count: quests.filter(q => q.status === 'backlog').length },
+      { id: 'completed', label: 'History', icon: History, color: 'text-green-500', count: quests.filter(q => q.status === 'completed').length },
+      { id: 'achievements', label: 'Achievements', icon: Trophy, color: 'text-yellow-500', count: achievements.length },
+      { id: 'all', label: 'All Quests', icon: LayoutGrid, color: 'text-purple-500', count: quests.length },
   ];
 
   return (
@@ -90,7 +98,7 @@ const Dashboard: React.FC = () => {
                     <tab.icon className={`w-4 h-4 mr-2 ${tab.color}`} />
                     {tab.label}
                     <span className="ml-2 text-xs bg-gray-200 dark:bg-gray-600 px-1.5 rounded-full text-gray-600 dark:text-gray-300">
-                        {tab.id === 'all' ? quests.length : quests.filter(q => q.status === tab.id).length}
+                        {tab.count}
                     </span>
                 </button>
             ))}
@@ -104,7 +112,7 @@ const Dashboard: React.FC = () => {
                 </div>
                 <input
                     type="text"
-                    placeholder="Search quests..."
+                    placeholder={activeTab === 'achievements' ? "Search achievements..." : "Search quests..."}
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md leading-5 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-orange-500 focus:border-orange-500 sm:text-sm"
@@ -128,7 +136,65 @@ const Dashboard: React.FC = () => {
       </div>
 
       {/* Content */}
-      {filteredQuests.length === 0 ? (
+      {activeTab === 'achievements' ? (
+          filteredAchievements.length === 0 ? (
+            <div className="text-center py-20 bg-gray-50 dark:bg-gray-800/50 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-700">
+                <p className="text-gray-500 dark:text-gray-400 italic text-lg">No achievements found.</p>
+            </div>
+          ) : (
+            viewMode === 'grid' ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 justify-items-center">
+                    {filteredAchievements.map(ach => (
+                        <AchievementCard 
+                            key={ach.id} 
+                            achievement={ach} 
+                            username={user?.display_name || user?.username}
+                            questTitle={quests.find(q => q.id === ach.quest_id)?.title}
+                        />
+                    ))}
+                </div>
+            ) : (
+                <div className="bg-white dark:bg-dcc-card shadow rounded-lg overflow-hidden border dark:border-dcc-system/20">
+                    <div className="overflow-x-auto">
+                        <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                            <thead className="bg-gray-50 dark:bg-gray-800">
+                                <tr>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Title</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Dimension</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Date Completed</th>
+                                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody className="bg-white dark:bg-dcc-card divide-y divide-gray-200 dark:divide-gray-700">
+                                {filteredAchievements.map(ach => (
+                                    <tr key={ach.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <Link to={`/achievements/${ach.id}`} className="text-orange-600 dark:text-dcc-system hover:underline font-medium flex items-center gap-2">
+                                                {ach.title}
+                                                <ArrowRight className="w-3 h-3 opacity-0 group-hover:opacity-100" />
+                                            </Link>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                                            <DimensionBadge dimension={ach.dimension} />
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 font-mono">
+                                            {new Date(ach.date_completed).toLocaleDateString()}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                            <Link to={`/achievements/${ach.id}`} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                                                View
+                                            </Link>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            )
+          )
+      ) : (
+        filteredQuests.length === 0 ? (
           <div className="text-center py-20 bg-gray-50 dark:bg-gray-800/50 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-700">
               <p className="text-gray-500 dark:text-gray-400 italic text-lg">No quests found in {activeTab}.</p>
               {activeTab === 'active' && (
@@ -137,7 +203,7 @@ const Dashboard: React.FC = () => {
                   </Link>
               )}
           </div>
-      ) : (
+        ) : (
           viewMode === 'grid' ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 justify-items-center">
                 {filteredQuests.map(quest => (
@@ -216,6 +282,7 @@ const Dashboard: React.FC = () => {
                 </div>
             </div>
           )
+        )
       )}
     </div>
   );
