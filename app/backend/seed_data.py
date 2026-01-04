@@ -153,22 +153,22 @@ def seed():
             db.add_achievement(a2)
             # But wait, db.add_quest returns the quest object, which has the ID.
             # However, in the block above I didn't capture the return values properly if I wanted to use them here.
-            # Let's just fetch quests again to find "Find the Lost Cat"
+            # Let's just fetch quests again to find "Form a Party"
             quests = db.get_quests(user_id)
-            q3_id = next((q['id'] for q in quests if q['title'] == "Find the Lost Cat"), None)
+            q3_id = next((q['id'] for q in quests if q['title'] == "Form a Party"), None)
 
             if q3_id:
-                a1 = Achievement(
+                a_linked = Achievement(
                     user_id=user_id,
-                    title="Quest Complete: Find the Lost Cat",
-                    context="Returned Mittens to the owner. The owner was a witch.",
+                    title="Quest Complete: Form a Party",
+                    context="Recruited a diverse group of adventurers at the local tavern.",
                     date_completed=datetime.now() - timedelta(days=2),
-                    dimension="emotional",
+                    dimension="social",
                     quest_id=q3_id,
-                    ai_description="NEW ACHIEVEMENT! You saved a cat. How original. I'm sure the witch won't turn you into a toad later.",
-                    ai_reward="+50 Karma points (useless)."
+                    ai_description="NEW ACHIEVEMENT! You found friends. Or at least people who tolerate you for loot.",
+                    ai_reward="+10 Charisma"
                 )
-                db.add_achievement(a1)
+                db.add_achievement(a_linked)
 
             # Standalone Achievement
             a2 = Achievement(
