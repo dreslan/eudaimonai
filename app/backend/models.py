@@ -49,6 +49,7 @@ class AchievementUpdate(BaseModel):
     title: Optional[str] = None
     context: Optional[str] = None
     is_hidden: Optional[bool] = None
+    quest_id: Optional[str] = None
 
 class BulkVisibilityUpdate(BaseModel):
     is_hidden: bool

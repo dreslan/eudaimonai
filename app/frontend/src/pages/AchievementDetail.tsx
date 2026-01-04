@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useParams, Link } from 'react-router-dom';
 import type { Achievement, Quest } from '../types';
-import { ArrowLeft, Printer } from 'lucide-react';
+import { ArrowLeft, Printer, Link as LinkIcon, Save } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import AchievementCard from '../components/AchievementCard';
 
@@ -11,6 +11,8 @@ const AchievementDetail: React.FC = () => {
   const { user } = useAuth();
   const [achievement, setAchievement] = useState<Achievement | null>(null);
   const [linkedQuest, setLinkedQuest] = useState<Quest | null>(null);
+  const [availableQuests, setAvailableQuests] = useState<Quest[]>([]);
+  const [selectedQuestId, setSelectedQuestId] = useState<string>('');
   const isPublic = window.location.pathname.startsWith('/public');
 
   useEffect(() => {
@@ -29,12 +31,18 @@ const AchievementDetail: React.FC = () => {
                     ? `http://localhost:8000/public/quests/${achRes.data.quest_id}`
                     : `http://localhost:8000/quests/${achRes.data.quest_id}`;
                 
-                if (!isPublic) {
-                    const questRes = await axios.get(questUrl);
-                    setLinkedQuest(questRes.data);
-                }
+                const questRes = await axios.get(questUrl);
+                setLinkedQuest(questRes.data);
             } catch (qError) {
                 console.log("Could not fetch linked quest", qError);
+            }
+        } else if (!isPublic) {
+            // Fetch available quests for linking
+            try {
+                const questsRes = await axios.get('http://localhost:8000/quests');
+                setAvailableQuests(questsRes.data.filter((q: Quest) => q.status !== 'completed'));
+            } catch (qError) {
+                console.log("Could not fetch quests list", qError);
             }
         }
       } catch (error) {
@@ -48,6 +56,26 @@ const AchievementDetail: React.FC = () => {
     if (achievement) {
         window.open(`/print/achievements/${achievement.id}`, '_blank');
     }
+  };
+
+  const handleLinkQuest = async () => {
+      if (!selectedQuestId || !achievement) return;
+      
+      try {
+          await axios.patch(`http://localhost:8000/achievements/${achievement.id}`, {
+              quest_id: selectedQuestId
+          });
+          
+          // Refresh data
+          const quest = availableQuests.find(q => q.id === selectedQuestId);
+          if (quest) {
+              setLinkedQuest(quest);
+              setAchievement({ ...achievement, quest_id: selectedQuestId });
+          }
+      } catch (error) {
+          console.error("Error linking quest", error);
+          alert("Failed to link quest. Please try again.");
+      }
   };
 
   if (!achievement) return <div className="text-center p-10 text-gray-400">Loading...</div>;
@@ -92,6 +120,60 @@ const AchievementDetail: React.FC = () => {
                 hideActions
             />
         </div>
+      </div>
+
+      {/* Quest Linking Section */}
+      <div className="w-full max-w-2xl mt-16 p-6 bg-white dark:bg-dcc-card rounded-lg shadow-lg border dark:border-dcc-system/20">
+          <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center">
+              <LinkIcon className="w-5 h-5 mr-2 text-dcc-system" />
+              Quest Association
+          </h3>
+          
+          {linkedQuest ? (
+              <div className="flex items-center justify-between bg-gray-50 dark:bg-gray-800 p-4 rounded-md">
+                  <div>
+                      <span className="text-sm text-gray-500 dark:text-gray-400 block">Linked to Quest</span>
+                      <Link to={`/quests/${linkedQuest.id}`} className="text-lg font-medium text-orange-600 dark:text-dcc-system hover:underline">
+                          {linkedQuest.title}
+                      </Link>
+                  </div>
+                  <div className="px-3 py-1 bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 text-xs font-bold uppercase rounded-full">
+                      Linked
+                  </div>
+              </div>
+          ) : !isPublic ? (
+              <div className="space-y-4">
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                      This achievement is not linked to any quest. You can link it to an existing quest below.
+                  </p>
+                  <div className="flex gap-4">
+                      <select
+                          value={selectedQuestId}
+                          onChange={(e) => setSelectedQuestId(e.target.value)}
+                          className="flex-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm p-2 border dark:bg-gray-800 dark:border-gray-600 dark:text-white"
+                      >
+                          <option value="">Select a quest...</option>
+                          {availableQuests.map(q => (
+                              <option key={q.id} value={q.id}>
+                                  {q.title} ({q.status})
+                              </option>
+                          ))}
+                      </select>
+                      <button
+                          onClick={handleLinkQuest}
+                          disabled={!selectedQuestId}
+                          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-dcc-system hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                          <Save className="w-4 h-4 mr-2" />
+                          Link Quest
+                      </button>
+                  </div>
+              </div>
+          ) : (
+            <div className="text-center text-gray-500 dark:text-gray-400 italic">
+                No quest linked.
+            </div>
+          )}
       </div>
     </div>
   );
