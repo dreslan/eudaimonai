@@ -295,6 +295,7 @@ def get_profile(current_user: UserInDB = Depends(get_current_user)):
     completed_quests = [q for q in quests if q['status'] == 'completed']
     
     return {
+        "id": current_user.id,
         "username": current_user.username,
         "display_name": current_user.display_name,
         "openai_api_key": current_user.openai_api_key,

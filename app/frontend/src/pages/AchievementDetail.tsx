@@ -1,13 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import type { Achievement, Quest } from '../types';
-import { ArrowLeft, Printer, Link as LinkIcon, Save, Share2 } from 'lucide-react';
+import { ArrowLeft, Printer, Link as LinkIcon, Save, Share2, Settings } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import AchievementCard from '../components/AchievementCard';
 
 const AchievementDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
   const [achievement, setAchievement] = useState<Achievement | null>(null);
   const [linkedQuest, setLinkedQuest] = useState<Quest | null>(null);
@@ -66,6 +68,19 @@ const AchievementDetail: React.FC = () => {
       }
   };
 
+  const handleManage = () => {
+      if (!user) {
+          navigate('/login', { state: { from: location } });
+          return;
+      }
+      
+      if (achievement && user.id === achievement.user_id) {
+          navigate(`/achievements/${id}`);
+      } else {
+          alert("You do not have permission to manage this achievement.");
+      }
+  };
+
   const handleLinkQuest = async () => {
       if (!selectedQuestId || !achievement) return;
       
@@ -96,9 +111,17 @@ const AchievementDetail: React.FC = () => {
                 <ArrowLeft className="w-4 h-4 mr-2" /> Back to Dashboard
             </Link>
           ) : (
-             <button onClick={() => window.history.back()} className="inline-flex items-center text-gray-400 hover:text-white transition-colors">
-                <ArrowLeft className="w-4 h-4 mr-2" /> Back
-             </button>
+             <div className="flex items-center gap-4">
+                 <button onClick={() => window.history.back()} className="inline-flex items-center text-gray-400 hover:text-white transition-colors">
+                    <ArrowLeft className="w-4 h-4 mr-2" /> Back
+                 </button>
+                 <button
+                    onClick={handleManage}
+                    className="inline-flex items-center px-3 py-1 border border-blue-300 shadow-sm text-xs font-medium rounded-md text-blue-700 bg-blue-50 hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:bg-blue-900/30 dark:text-blue-200 dark:border-blue-800 dark:hover:bg-blue-900/50"
+                >
+                    <Settings className="w-3 h-3 mr-1" /> Manage
+                </button>
+             </div>
           )}
           
           <div className="flex gap-2">

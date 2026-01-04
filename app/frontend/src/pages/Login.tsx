@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Moon, Sun } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
@@ -12,6 +12,7 @@ const Login: React.FC = () => {
   const { login } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,7 +23,9 @@ const Login: React.FC = () => {
       
       const response = await axios.post('http://localhost:8000/token', formData);
       login(response.data.access_token);
-      navigate('/');
+      
+      const from = location.state?.from?.pathname || "/";
+      navigate(from);
     } catch (err: unknown) {
       console.error(err);
       setError('Invalid username or password');

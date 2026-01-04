@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import type { Quest, Achievement, Status } from '../types';
-import { ArrowLeft, Edit, Trash2, Plus, LayoutGrid, List, Calendar, Play, CheckCircle, Share2 } from 'lucide-react';
+import { ArrowLeft, Edit, Trash2, Plus, LayoutGrid, List, Calendar, Play, CheckCircle, Share2, Settings } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import AchievementCard from '../components/AchievementCard';
 import Timeline from '../components/Timeline';
@@ -11,6 +11,7 @@ import DimensionBadge from '../components/DimensionBadge';
 const QuestDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
   const [quest, setQuest] = useState<Quest | null>(null);
   const [linkedAchievements, setLinkedAchievements] = useState<Achievement[]>([]);
@@ -96,6 +97,19 @@ const QuestDetail: React.FC = () => {
       alert("Public link copied to clipboard!");
   };
 
+  const handleManage = () => {
+      if (!user) {
+          navigate('/login', { state: { from: location } });
+          return;
+      }
+      
+      if (quest && user.id === quest.user_id) {
+          navigate(`/quests/${id}`);
+      } else {
+          alert("You do not have permission to manage this quest.");
+      }
+  };
+
   if (!quest) return <div>Loading...</div>;
 
   return (
@@ -107,8 +121,16 @@ const QuestDetail: React.FC = () => {
                 <ArrowLeft className="w-4 h-4 mr-1" /> Back to Dashboard
             </Link>
         ) : (
-            <div className="text-sm text-gray-500 dark:text-gray-400">
-                Public Quest View
+            <div className="flex items-center gap-4">
+                <div className="text-sm text-gray-500 dark:text-gray-400">
+                    Public Quest View
+                </div>
+                <button
+                    onClick={handleManage}
+                    className="inline-flex items-center px-3 py-1 border border-blue-300 shadow-sm text-xs font-medium rounded-md text-blue-700 bg-blue-50 hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:bg-blue-900/30 dark:text-blue-200 dark:border-blue-800 dark:hover:bg-blue-900/50"
+                >
+                    <Settings className="w-3 h-3 mr-1" /> Manage
+                </button>
             </div>
         )}
         

@@ -17,6 +17,7 @@ export interface User {
 
 export interface Quest {
     id: string;
+    user_id: string;
     title: string;
     dimension?: Dimension | null;
     status: Status;
@@ -39,6 +40,7 @@ export interface QuestCreate {
 
 export interface Achievement {
     id: string;
+    user_id: string;
     title: string;
     context: string;
     date_completed: string;
