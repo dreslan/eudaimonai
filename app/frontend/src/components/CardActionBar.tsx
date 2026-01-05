@@ -14,6 +14,7 @@ interface CardActionBarProps {
     showStatusActions?: boolean;
     showDelete?: boolean;
     isPublicView?: boolean;
+    variant?: 'default' | 'minimal';
 }
 
 const CardActionBar: React.FC<CardActionBarProps> = ({
@@ -26,7 +27,8 @@ const CardActionBar: React.FC<CardActionBarProps> = ({
     onDelete,
     showStatusActions = true,
     showDelete = false,
-    isPublicView = false
+    isPublicView = false,
+    variant = 'default'
 }) => {
     const baseUrl = window.location.origin;
     const shareUrl = type === 'character' 
@@ -43,9 +45,13 @@ const CardActionBar: React.FC<CardActionBarProps> = ({
         window.open(printPath, '_blank');
     };
 
+    const containerClasses = variant === 'default'
+        ? "w-[320px] flex items-center justify-between px-2 py-2 bg-white dark:bg-dcc-card border-t dark:border-gray-700 rounded-b-lg shadow-sm mt-[-8px] relative z-20"
+        : "flex items-center justify-end gap-2";
+
     if (isPublicView) {
         return (
-            <div className="w-[320px] flex items-center justify-end px-2 py-2 bg-white dark:bg-dcc-card border-t dark:border-gray-700 rounded-b-lg shadow-sm mt-[-8px] relative z-20">
+            <div className={variant === 'default' ? "w-[320px] flex items-center justify-end px-2 py-2 bg-white dark:bg-dcc-card border-t dark:border-gray-700 rounded-b-lg shadow-sm mt-[-8px] relative z-20" : "flex items-center justify-end gap-2"}>
                  <button
                     onClick={handlePrint}
                     className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-full transition-colors"
@@ -67,8 +73,9 @@ const CardActionBar: React.FC<CardActionBarProps> = ({
     }
 
     return (
-        <div className="w-[320px] flex items-center justify-between px-2 py-2 bg-white dark:bg-dcc-card border-t dark:border-gray-700 rounded-b-lg shadow-sm mt-[-8px] relative z-20">
+        <div className={containerClasses}>
             {/* Left Side: Status Actions */}
+            {variant === 'default' && (
             <div className="flex items-center gap-2">
                 {type === 'quest' && showStatusActions && status && (
                     <>
@@ -102,9 +109,38 @@ const CardActionBar: React.FC<CardActionBarProps> = ({
                     </>
                 )}
             </div>
+            )}
 
             {/* Right Side: Utility Actions */}
             <div className="flex items-center gap-1">
+                {/* In minimal mode, we might want to show status actions here if needed, but for now let's keep it simple */}
+                {variant === 'minimal' && type === 'quest' && showStatusActions && status && (
+                     <>
+                        {status === 'backlog' && (
+                            <button
+                                onClick={() => onStatusChange?.('active')}
+                                className="p-2 text-green-600 hover:bg-green-50 dark:hover:bg-green-900/30 rounded-full transition-colors"
+                                title="Start Quest"
+                            >
+                                <Play className="w-4 h-4" />
+                            </button>
+                        )}
+                        {status === 'active' && (
+                            <button
+                                onClick={() => {
+                                    if (window.confirm("Are you sure you want to complete this quest? This cannot be undone.")) {
+                                        onStatusChange?.('completed');
+                                    }
+                                }}
+                                className="p-2 text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-900/30 rounded-full transition-colors"
+                                title="Complete Quest"
+                            >
+                                <CheckCircle className="w-4 h-4" />
+                            </button>
+                        )}
+                     </>
+                )}
+
                 {type !== 'character' && (
                     <button
                         onClick={() => onVisibilityChange?.(!isHidden)}

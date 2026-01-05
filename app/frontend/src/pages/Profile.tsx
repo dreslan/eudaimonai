@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
 import type { Achievement, Quest, User, Status } from '../types';
-import { LayoutGrid, List, Search, Skull, Edit2, Check, Share2, ExternalLink, X, Circle, Archive, History, Trophy, Copy, ChevronLeft, ChevronRight } from 'lucide-react';
+import { LayoutGrid, List, Search, Skull, Edit2, Check, Share2, ExternalLink, X, Circle, Archive, History, Trophy, Copy, ChevronLeft, ChevronRight, Filter, ArrowUpDown, ChevronDown } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import QuestCard from '../components/QuestCard';
 import AchievementCard from '../components/AchievementCard';
@@ -19,6 +19,8 @@ const Profile: React.FC = () => {
   const [activeTab, setActiveTab] = useState<Status | 'all' | 'achievements'>('active');
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
   const [searchTerm, setSearchTerm] = useState('');
+  const [difficultyFilter, setDifficultyFilter] = useState<number | ''>('');
+  const [sortBy, setSortBy] = useState<string>('newest');
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [displayName, setDisplayName] = useState('');
   const [showShareModal, setShowShareModal] = useState(false);
@@ -52,6 +54,12 @@ const Profile: React.FC = () => {
           if (searchTerm) {
               params.search = searchTerm;
           }
+          if (difficultyFilter) {
+              params.difficulty = difficultyFilter;
+          }
+          if (sortBy) {
+              params.sort_by = sortBy;
+          }
           const res = await axios.get('http://localhost:8000/quests', { params });
           setQuests(res.data.items);
           setQuestsTotal(res.data.total);
@@ -65,6 +73,9 @@ const Profile: React.FC = () => {
           const params: any = { page: achievementsPage, page_size: pageSize };
           if (searchTerm) {
               params.search = searchTerm;
+          }
+          if (sortBy) {
+              params.sort_by = sortBy;
           }
           const res = await axios.get('http://localhost:8000/achievements', { params });
           setAchievements(res.data.items);
@@ -103,7 +114,7 @@ const Profile: React.FC = () => {
       } else {
           fetchQuests();
       }
-  }, [activeTab, questsPage, achievementsPage]);
+  }, [activeTab, questsPage, achievementsPage, difficultyFilter, sortBy]);
 
   const handleTabChange = (tab: Status | 'all' | 'achievements') => {
       setActiveTab(tab);
@@ -179,7 +190,7 @@ const Profile: React.FC = () => {
   const tabs = [
       { id: 'active', label: 'Active', icon: Circle, color: 'text-orange-500', count: profile?.stats?.quests_active },
       { id: 'backlog', label: 'Backlog', icon: Archive, color: 'text-gray-500', count: undefined },
-      { id: 'completed', label: 'History', icon: History, color: 'text-green-500', count: profile?.stats?.quests_completed },
+      { id: 'completed', label: 'Completed', icon: History, color: 'text-green-500', count: profile?.stats?.quests_completed },
       { id: 'achievements', label: 'Achievements', icon: Trophy, color: 'text-yellow-500', count: profile?.stats?.achievements_unlocked },
       { id: 'all', label: 'All Quests', icon: LayoutGrid, color: 'text-purple-500', count: undefined },
   ];
@@ -362,7 +373,9 @@ const Profile: React.FC = () => {
         </div>
       </div>
 
-      {quests.length === 0 && achievements.length === 0 ? (
+      {((profile.stats?.quests_active || 0) === 0 && 
+        (profile.stats?.quests_completed || 0) === 0 && 
+        (profile.stats?.achievements_unlocked || 0) === 0) ? (
         <div className="max-w-3xl mx-auto mt-10 p-8 bg-white dark:bg-dcc-card text-gray-900 dark:text-white rounded-xl border-2 border-dcc-system shadow-xl relative overflow-hidden">
             <div className="flex flex-col items-center text-center space-y-6 relative z-10">
                 <div className="bg-red-100 dark:bg-red-900/30 p-4 rounded-full shadow-sm">
@@ -395,45 +408,46 @@ const Profile: React.FC = () => {
       ) : (
       <div className="bg-white dark:bg-dcc-card shadow rounded-lg p-6 border dark:border-dcc-system/20">
         {/* Controls Header */}
-        <div className="flex flex-col xl:flex-row justify-between items-center mb-6 gap-4">
-            {/* Tabs */}
-            <div className="flex flex-wrap justify-center gap-2 bg-gray-100 dark:bg-gray-800 p-1.5 rounded-lg w-full xl:w-auto">
-                {tabs.map(tab => {
-                    const Icon = tab.icon;
-                    const isActive = activeTab === tab.id;
-                    return (
-                        <button
-                            key={tab.id}
-                            onClick={() => handleTabChange(tab.id as any)}
-                            className={`
-                                flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-all
-                                ${isActive 
-                                    ? 'bg-white dark:bg-dcc-card text-gray-900 dark:text-white shadow-sm ring-1 ring-black/5 dark:ring-white/10' 
-                                    : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-200/50 dark:hover:bg-gray-700/50'
-                                }
-                            `}
-                        >
-                            <Icon className={`w-4 h-4 ${isActive ? tab.color : ''}`} />
-                            <span>{tab.label}</span>
-                            {tab.count !== undefined && (
-                                <span className={`
-                                    text-xs px-1.5 py-0.5 rounded-full
+        <div className="flex flex-col gap-6 mb-8">
+            {/* Top Row: Tabs and Search */}
+            <div className="flex flex-col lg:flex-row justify-between items-center gap-4">
+                {/* Tabs */}
+                <div className="flex flex-wrap justify-center gap-2 bg-gray-100 dark:bg-gray-800 p-1.5 rounded-lg w-full lg:w-auto">
+                    {tabs.map(tab => {
+                        const Icon = tab.icon;
+                        const isActive = activeTab === tab.id;
+                        return (
+                            <button
+                                key={tab.id}
+                                onClick={() => handleTabChange(tab.id as any)}
+                                className={`
+                                    flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-all
                                     ${isActive 
-                                        ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white' 
-                                        : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400'
+                                        ? 'bg-white dark:bg-dcc-card text-gray-900 dark:text-white shadow-sm ring-1 ring-black/5 dark:ring-white/10' 
+                                        : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-200/50 dark:hover:bg-gray-700/50'
                                     }
-                                `}>
-                                    {tab.count}
-                                </span>
-                            )}
-                        </button>
-                    );
-                })}
-            </div>
+                                `}
+                            >
+                                <Icon className={`w-4 h-4 ${isActive ? tab.color : ''}`} />
+                                <span>{tab.label}</span>
+                                {tab.count !== undefined && (
+                                    <span className={`
+                                        text-xs px-1.5 py-0.5 rounded-full
+                                        ${isActive 
+                                            ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white' 
+                                            : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400'
+                                        }
+                                    `}>
+                                        {tab.count}
+                                    </span>
+                                )}
+                            </button>
+                        );
+                    })}
+                </div>
 
-            {/* Search & View Toggle */}
-            <div className="flex items-center space-x-4 w-full xl:w-auto justify-end">
-                <div className="relative flex-1 sm:flex-none w-full sm:w-64">
+                {/* Search */}
+                <div className="relative w-full lg:w-72">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                         <Search className="h-4 w-4 text-gray-400" />
                     </div>
@@ -442,19 +456,70 @@ const Profile: React.FC = () => {
                         placeholder="Search..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md leading-5 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-orange-500 focus:border-orange-500 sm:text-sm"
+                        className="block w-full pl-10 pr-3 py-2.5 border-none ring-1 ring-gray-200 dark:ring-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800/50 text-gray-900 dark:text-white placeholder-gray-500 focus:ring-2 focus:ring-orange-500 transition-all"
                     />
                 </div>
-                <div className="flex items-center border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 shrink-0">
+            </div>
+
+            {/* Bottom Row: Filters and View Toggle */}
+            <div className="flex flex-wrap justify-end items-center gap-3 pt-4 border-t border-gray-100 dark:border-gray-800">
+                {/* Rank Filter */}
+                {activeTab !== 'achievements' && (
+                    <div className="relative group">
+                        <Filter className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500 pointer-events-none group-hover:text-orange-500 transition-colors" />
+                        <select
+                            value={difficultyFilter}
+                            onChange={(e) => setDifficultyFilter(e.target.value ? Number(e.target.value) : '')}
+                            className="appearance-none pl-9 pr-8 py-2 text-sm font-medium bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+                        >
+                            <option value="">All Ranks</option>
+                            <option value="1">Common</option>
+                            <option value="2">Uncommon</option>
+                            <option value="3">Rare</option>
+                            <option value="4">Epic</option>
+                            <option value="5">Legendary</option>
+                        </select>
+                        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+                    </div>
+                )}
+                
+                {/* Sort */}
+                <div className="relative group">
+                    <ArrowUpDown className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500 pointer-events-none group-hover:text-orange-500 transition-colors" />
+                    <select
+                        value={sortBy}
+                        onChange={(e) => setSortBy(e.target.value)}
+                        className="appearance-none pl-9 pr-8 py-2 text-sm font-medium bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+                    >
+                        <option value="newest">Newest</option>
+                        <option value="oldest">Oldest</option>
+                        {activeTab !== 'achievements' && (
+                            <>
+                                <option value="difficulty_desc">Highest Rank</option>
+                                <option value="difficulty_asc">Lowest Rank</option>
+                                <option value="xp_desc">Highest XP</option>
+                                <option value="xp_asc">Lowest XP</option>
+                            </>
+                        )}
+                    </select>
+                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+                </div>
+
+                <div className="w-px h-8 bg-gray-200 dark:bg-gray-700 mx-2 hidden sm:block"></div>
+
+                {/* View Toggle */}
+                <div className="flex items-center bg-gray-100 dark:bg-gray-800 rounded-lg p-1 border border-gray-200 dark:border-gray-700">
                     <button
                         onClick={() => setViewMode('grid')}
-                        className={`p-2 rounded-l-md ${viewMode === 'grid' ? 'bg-gray-100 dark:bg-gray-700 text-orange-600 dark:text-dcc-system' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'}`}
+                        className={`p-1.5 rounded-md transition-all ${viewMode === 'grid' ? 'bg-white dark:bg-gray-700 text-orange-600 dark:text-dcc-system shadow-sm' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'}`}
+                        title="Grid View"
                     >
                         <LayoutGrid className="h-4 w-4" />
                     </button>
                     <button
                         onClick={() => setViewMode('table')}
-                        className={`p-2 rounded-r-md ${viewMode === 'table' ? 'bg-gray-100 dark:bg-gray-700 text-orange-600 dark:text-dcc-system' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'}`}
+                        className={`p-1.5 rounded-md transition-all ${viewMode === 'table' ? 'bg-white dark:bg-gray-700 text-orange-600 dark:text-dcc-system shadow-sm' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'}`}
+                        title="Table View"
                     >
                         <List className="h-4 w-4" />
                     </button>
@@ -465,27 +530,39 @@ const Profile: React.FC = () => {
         {/* Content */}
         {activeTab === 'achievements' ? (
             viewMode === 'grid' ? (
+                filteredAchievements.length === 0 ? (
+                    <div className="text-center py-12 text-gray-500 dark:text-gray-400 col-span-full">
+                        No achievements found matching your criteria.
+                    </div>
+                ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 justify-items-center">
                     {filteredAchievements.map(achievement => (
-                        <div key={achievement.id} className="flex flex-col gap-4 w-full max-w-sm items-center">
+                        <div key={achievement.id} className="flex flex-col gap-4 w-full max-w-sm items-center group">
                             <AchievementCard achievement={achievement} />
-                            <CardActionBar 
-                                type="achievement"
-                                id={achievement.id}
-                                isHidden={achievement.is_hidden}
-                                onVisibilityChange={(hidden) => handleVisibilityChange(achievement.id, 'achievement', hidden)}
-                            />
+                            <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                <CardActionBar 
+                                    type="achievement"
+                                    id={achievement.id}
+                                    isHidden={achievement.is_hidden}
+                                    onVisibilityChange={(hidden) => handleVisibilityChange(achievement.id, 'achievement', hidden)}
+                                />
+                            </div>
                         </div>
                     ))}
                 </div>
+                )
             ) : (
+                filteredAchievements.length === 0 ? (
+                    <div className="text-center py-12 text-gray-500 dark:text-gray-400">
+                        No achievements found matching your criteria.
+                    </div>
+                ) : (
                 <div className="overflow-x-auto">
                     <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                         <thead className="bg-gray-50 dark:bg-gray-800">
                             <tr>
                                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Achievement</th>
                                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Date</th>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Context</th>
                                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Linked Quest</th>
                             </tr>
                         </thead>
@@ -498,16 +575,15 @@ const Profile: React.FC = () => {
                                                 <Trophy className="h-5 w-5" />
                                             </div>
                                             <div className="ml-4">
-                                                <div className="text-sm font-medium text-gray-900 dark:text-white">{achievement.title}</div>
+                                                <Link to={`/achievements/${achievement.id}`} className="text-sm font-medium text-gray-900 dark:text-white hover:text-orange-600 dark:hover:text-orange-400 hover:underline">
+                                                    {achievement.title}
+                                                </Link>
                                                 <div className="text-sm text-gray-500 dark:text-gray-400">{achievement.ai_description}</div>
                                             </div>
                                         </div>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                                         {new Date(achievement.date_completed).toLocaleDateString()}
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                                        {achievement.context}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                                         {achievement.quest_title ? (
@@ -523,30 +599,44 @@ const Profile: React.FC = () => {
                         </tbody>
                     </table>
                 </div>
+                )
             )
         ) : (
             viewMode === 'grid' ? (
+                filteredQuests.length === 0 ? (
+                    <div className="text-center py-12 text-gray-500 dark:text-gray-400 col-span-full">
+                        No quests found matching your criteria.
+                    </div>
+                ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 justify-items-center">
                     {filteredQuests.map(quest => (
-                        <div key={quest.id} className="flex flex-col gap-4 w-full max-w-sm items-center">
+                        <div key={quest.id} className="flex flex-col gap-4 w-full max-w-sm items-center group">
                             <QuestCard 
                                 quest={quest} 
                                 username={profile?.display_name || profile?.username}
                                 className={quest.is_hidden ? 'opacity-60 grayscale' : ''} 
                             />
-                            <CardActionBar 
-                                type="quest"
-                                id={quest.id}
-                                status={quest.status}
-                                isHidden={quest.is_hidden}
-                                onStatusChange={(status) => handleStatusChange(quest.id, status)}
-                                onDelete={() => handleDeleteQuest(quest.id)}
-                                onVisibilityChange={(hidden) => handleVisibilityChange(quest.id, 'quest', hidden)}
-                            />
+                            <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                <CardActionBar 
+                                    type="quest"
+                                    id={quest.id}
+                                    status={quest.status}
+                                    isHidden={quest.is_hidden}
+                                    onStatusChange={(status) => handleStatusChange(quest.id, status)}
+                                    onDelete={() => handleDeleteQuest(quest.id)}
+                                    onVisibilityChange={(hidden) => handleVisibilityChange(quest.id, 'quest', hidden)}
+                                />
+                            </div>
                         </div>
                     ))}
                 </div>
+                )
             ) : (
+                filteredQuests.length === 0 ? (
+                    <div className="text-center py-12 text-gray-500 dark:text-gray-400">
+                        No quests found matching your criteria.
+                    </div>
+                ) : (
                 <div className="overflow-x-auto">
                     <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                         <thead className="bg-gray-50 dark:bg-gray-800">
@@ -565,7 +655,9 @@ const Profile: React.FC = () => {
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <div className="flex items-center">
                                             <div className="ml-4">
-                                                <div className="text-sm font-medium text-gray-900 dark:text-white">{quest.title}</div>
+                                                <Link to={`/quests/${quest.id}`} className="text-sm font-medium text-gray-900 dark:text-white hover:text-orange-600 dark:hover:text-orange-400 hover:underline">
+                                                    {quest.title}
+                                                </Link>
                                                 <div className="text-sm text-gray-500 dark:text-gray-400">{quest.victory_condition}</div>
                                             </div>
                                         </div>
@@ -612,6 +704,7 @@ const Profile: React.FC = () => {
                                                 onStatusChange={(status) => handleStatusChange(quest.id, status)}
                                                 onDelete={() => handleDeleteQuest(quest.id)}
                                                 onVisibilityChange={(hidden) => handleVisibilityChange(quest.id, 'quest', hidden)}
+                                                variant="minimal"
                                             />
                                         </div>
                                     </td>
@@ -620,6 +713,7 @@ const Profile: React.FC = () => {
                         </tbody>
                     </table>
                 </div>
+                )
             )
         )}
 

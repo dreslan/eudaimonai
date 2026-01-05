@@ -41,12 +41,15 @@ class SqliteDatabase:
         finally:
             session.close()
 
-    def get_quests_paginated(self, user_id: str, skip: int = 0, limit: int = 20, status: Optional[str] = None, search: Optional[str] = None) -> Dict[str, Any]:
+    def get_quests_paginated(self, user_id: str, skip: int = 0, limit: int = 20, status: Optional[str] = None, search: Optional[str] = None, difficulty: Optional[int] = None, sort_by: Optional[str] = 'newest') -> Dict[str, Any]:
         session = self.SessionLocal()
         try:
             query = session.query(QuestDB).filter(QuestDB.user_id == user_id)
             if status:
                 query = query.filter(QuestDB.status == status)
+            
+            if difficulty:
+                query = query.filter(QuestDB.difficulty == difficulty)
             
             if search:
                 search_term = f"%{search}%"
@@ -54,6 +57,20 @@ class SqliteDatabase:
                     QuestDB.title.ilike(search_term),
                     QuestDB.dimension.ilike(search_term)
                 ))
+            
+            # Sorting
+            if sort_by == 'oldest':
+                query = query.order_by(QuestDB.created_at.asc())
+            elif sort_by == 'difficulty_desc':
+                query = query.order_by(QuestDB.difficulty.desc())
+            elif sort_by == 'difficulty_asc':
+                query = query.order_by(QuestDB.difficulty.asc())
+            elif sort_by == 'xp_desc':
+                query = query.order_by(QuestDB.xp_reward.desc())
+            elif sort_by == 'xp_asc':
+                query = query.order_by(QuestDB.xp_reward.asc())
+            else: # newest
+                query = query.order_by(QuestDB.created_at.desc())
             
             total = query.count()
             quests = query.offset(skip).limit(limit).all()
@@ -160,7 +177,7 @@ class SqliteDatabase:
         finally:
             session.close()
 
-    def get_achievements_paginated(self, user_id: str, skip: int = 0, limit: int = 20, search: Optional[str] = None) -> Dict[str, Any]:
+    def get_achievements_paginated(self, user_id: str, skip: int = 0, limit: int = 20, search: Optional[str] = None, sort_by: Optional[str] = 'newest') -> Dict[str, Any]:
         session = self.SessionLocal()
         try:
             query = session.query(AchievementDB, QuestDB.title.label("quest_title"))\
@@ -175,7 +192,14 @@ class SqliteDatabase:
                 ))
 
             total = query.count()
-            achievements = query.order_by(AchievementDB.date_completed.desc()).offset(skip).limit(limit).all()
+            
+            # Sorting
+            if sort_by == 'oldest':
+                query = query.order_by(AchievementDB.date_completed.asc())
+            else: # newest
+                query = query.order_by(AchievementDB.date_completed.desc())
+
+            achievements = query.offset(skip).limit(limit).all()
             
             results = []
             for ach, q_title in achievements:

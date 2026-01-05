@@ -76,10 +76,20 @@ def get_quests(
     page_size: int = Query(20, ge=1, le=100), 
     status: Optional[str] = Query(None),
     search: Optional[str] = Query(None),
+    difficulty: Optional[int] = Query(None),
+    sort_by: Optional[str] = Query('newest'),
     current_user: UserInDB = Depends(get_current_user)
 ):
     skip = (page - 1) * page_size
-    result = db.get_quests_paginated(user_id=current_user.id, skip=skip, limit=page_size, status=status, search=search)
+    result = db.get_quests_paginated(
+        user_id=current_user.id, 
+        skip=skip, 
+        limit=page_size, 
+        status=status, 
+        search=search,
+        difficulty=difficulty,
+        sort_by=sort_by
+    )
     return {
         "items": result["items"],
         "total": result["total"],
@@ -253,10 +263,17 @@ def get_achievements(
     page: int = Query(1, ge=1), 
     page_size: int = Query(20, ge=1, le=100), 
     search: Optional[str] = Query(None),
+    sort_by: Optional[str] = Query('newest'),
     current_user: UserInDB = Depends(get_current_user)
 ):
     skip = (page - 1) * page_size
-    result = db.get_achievements_paginated(user_id=current_user.id, skip=skip, limit=page_size, search=search)
+    result = db.get_achievements_paginated(
+        user_id=current_user.id, 
+        skip=skip, 
+        limit=page_size, 
+        search=search,
+        sort_by=sort_by
+    )
     return {
         "items": result["items"],
         "total": result["total"],

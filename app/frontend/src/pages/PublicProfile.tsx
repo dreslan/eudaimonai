@@ -157,14 +157,16 @@ const PublicProfile: React.FC = () => {
             viewMode === 'grid' ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 justify-items-center">
                     {filteredQuests.map(quest => (
-                        <div key={quest.id} className="flex flex-col gap-4 w-full max-w-sm items-center">
+                        <div key={quest.id} className="flex flex-col gap-4 w-full max-w-sm items-center group">
                             <QuestCard quest={quest} />
-                            <CardActionBar 
-                                type="quest"
-                                id={quest.id}
-                                status={quest.status}
-                                isPublicView={true}
-                            />
+                            <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                <CardActionBar 
+                                    type="quest"
+                                    id={quest.id}
+                                    status={quest.status}
+                                    isPublicView={true}
+                                />
+                            </div>
                         </div>
                     ))}
                 </div>
@@ -208,17 +210,19 @@ const PublicProfile: React.FC = () => {
             viewMode === 'grid' ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 justify-items-center">
                     {filteredAchievements.map((ach: Achievement) => (
-                        <div key={ach.id} className="flex flex-col gap-4 w-full max-w-sm items-center">
+                        <div key={ach.id} className="flex flex-col gap-4 w-full max-w-sm items-center group">
                             <AchievementCard 
                                 achievement={ach} 
                                 username={profile?.display_name || profile?.username}
                                 questTitle={quests.find(q => q.id === ach.quest_id)?.title}
                             />
-                            <CardActionBar 
-                                type="achievement"
-                                id={ach.id}
-                                isPublicView={true}
-                            />
+                            <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                <CardActionBar 
+                                    type="achievement"
+                                    id={ach.id}
+                                    isPublicView={true}
+                                />
+                            </div>
                         </div>
                     ))}
                 </div>
