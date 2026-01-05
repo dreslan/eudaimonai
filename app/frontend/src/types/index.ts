@@ -20,6 +20,11 @@ export interface User {
         achievements_unlocked: number;
         total_xp?: number;
         quest_difficulty_breakdown?: Record<number, number>;
+        hardest_quest?: {
+            title: string;
+            xp: number;
+            difficulty: number;
+        };
     };
     dimension_stats?: UserDimensionStats[];
 }

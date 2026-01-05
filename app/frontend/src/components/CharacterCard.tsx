@@ -14,7 +14,6 @@ interface CharacterCardProps {
 
 const CharacterCard: React.FC<CharacterCardProps> = ({ 
     user, 
-    achievements = [],
     className = '',
     forceFace
 }) => {
@@ -71,85 +70,108 @@ const CharacterCard: React.FC<CharacterCardProps> = ({
             className={`w-full h-full rounded-2xl overflow-hidden bg-gray-900 border-[12px] border-gray-800 shadow-2xl flex flex-col relative cursor-pointer`}
         >
             {/* Header */}
-            <div className="bg-gray-800 p-4 border-b-4 border-gray-700 text-center">
-                <h3 className="font-['Cinzel'] font-black text-xl text-gray-300 tracking-widest">BUILD</h3>
+            <div className="bg-gray-800 p-3 border-b-4 border-gray-700 text-center shrink-0">
+                <h3 className="font-['Cinzel'] font-black text-lg text-gray-300 tracking-widest">PLAYER HIGHLIGHTS</h3>
             </div>
 
-            {/* Body - Radar Chart */}
-            <div className="flex-1 flex flex-col items-center justify-start p-4 relative space-y-4">
-                <div className="w-40 h-40 relative mt-2">
-                    <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible">
-                        {/* Background Grid */}
-                        {[0.2, 0.4, 0.6, 0.8, 1].map(scale => (
-                            <polygon 
-                                key={scale}
-                                points={dimensions.map((_, i) => getPoint(maxLevel * scale, i, dimensions.length, 50)).join(' ')}
-                                fill="none"
-                                stroke="#374151"
-                                strokeWidth="0.5"
-                            />
-                        ))}
-                        
-                        {/* Axes */}
-                        {dimensions.map((_, i) => (
-                            <line 
-                                key={i}
-                                x1="50" y1="50"
-                                x2={getPoint(maxLevel, i, dimensions.length, 50).split(',')[0]}
-                                y2={getPoint(maxLevel, i, dimensions.length, 50).split(',')[1]}
-                                stroke="#374151"
-                                strokeWidth="0.5"
-                            />
-                        ))}
+            {/* Body */}
+            <div className="flex-1 flex flex-col items-center justify-start p-2 relative space-y-2 min-h-0 overflow-y-auto">
+                
+                {/* Current Build Section */}
+                <div className="w-full flex flex-col items-center shrink-0">
+                    <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider text-center border-b border-gray-700 pb-1 w-full mb-1">Current Build</h4>
+                    <div className="w-24 h-24 relative my-1">
+                        <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible">
+                            {/* Background Grid */}
+                            {[0.2, 0.4, 0.6, 0.8, 1].map(scale => (
+                                <polygon 
+                                    key={scale}
+                                    points={dimensions.map((_, i) => getPoint(maxLevel * scale, i, dimensions.length, 50)).join(' ')}
+                                    fill="none"
+                                    stroke="#374151"
+                                    strokeWidth="0.5"
+                                />
+                            ))}
+                            
+                            {/* Axes */}
+                            {dimensions.map((_, i) => (
+                                <line 
+                                    key={i}
+                                    x1="50" y1="50"
+                                    x2={getPoint(maxLevel, i, dimensions.length, 50).split(',')[0]}
+                                    y2={getPoint(maxLevel, i, dimensions.length, 50).split(',')[1]}
+                                    stroke="#374151"
+                                    strokeWidth="0.5"
+                                />
+                            ))}
 
-                        {/* Data */}
-                        <polygon 
-                            points={radarPoints}
-                            fill="rgba(249, 115, 22, 0.5)"
-                            stroke="#f97316"
-                            strokeWidth="2"
-                        />
-                    </svg>
-                    
-                    {/* Labels */}
-                    {dimensions.map((dim, i) => {
-                        const angle = (Math.PI * 2 * i) / dimensions.length - Math.PI / 2;
-                        const radius = 65; // Push labels out
-                        const x = 50 + Math.cos(angle) * radius;
-                        const y = 50 + Math.sin(angle) * radius;
-                        const Icon = getDimensionIcon(dim);
-                        const color = dimensionColors[dim].text400;
+                            {/* Data */}
+                            <polygon 
+                                points={radarPoints}
+                                fill="rgba(249, 115, 22, 0.5)"
+                                stroke="#f97316"
+                                strokeWidth="2"
+                            />
+                        </svg>
                         
-                        return (
-                            <div 
-                                key={dim}
-                                className={`absolute flex items-center justify-center w-6 h-6 rounded-full bg-gray-800 border border-gray-700 ${color}`}
-                                style={{ 
-                                    left: `${x}%`, 
-                                    top: `${y}%`, 
-                                    transform: 'translate(-50%, -50%)' 
-                                }}
-                                title={dim}
-                            >
-                                <Icon size={12} />
-                            </div>
-                        );
-                    })}
+                        {/* Labels */}
+                        {dimensions.map((dim, i) => {
+                            const angle = (Math.PI * 2 * i) / dimensions.length - Math.PI / 2;
+                            const radius = 60; // Push labels out
+                            const x = 50 + Math.cos(angle) * radius;
+                            const y = 50 + Math.sin(angle) * radius;
+                            const Icon = getDimensionIcon(dim);
+                            const color = dimensionColors[dim].text400;
+                            
+                            return (
+                                <div 
+                                    key={dim}
+                                    className={`absolute flex items-center justify-center w-4 h-4 rounded-full bg-gray-800 border border-gray-700 ${color}`}
+                                    style={{ 
+                                        left: `${x}%`, 
+                                        top: `${y}%`, 
+                                        transform: 'translate(-50%, -50%)' 
+                                    }}
+                                    title={dim}
+                                >
+                                    <Icon size={8} />
+                                </div>
+                            );
+                        })}
+                    </div>
                 </div>
 
-                {/* Top Feats */}
-                <div className="w-full space-y-2">
-                    <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider text-center border-b border-gray-700 pb-1">Top Feats</h4>
-                    {achievements.length > 0 ? (
-                        <div className="space-y-1">
-                            {achievements.slice(0, 3).map((ach, i) => (
-                                <div key={i} className="text-xs text-gray-300 truncate flex items-center gap-1">
-                                    <span className="text-orange-500">★</span> {ach.title}
+                {/* Quest Stats */}
+                <div className="w-full space-y-2 shrink-0">
+                    <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider text-center border-b border-gray-700 pb-1">Quest Stats</h4>
+                    <div className="space-y-1 px-2">
+                        {[1, 2, 3, 4, 5].map(diff => {
+                            const count = user.stats?.quest_difficulty_breakdown?.[diff] || 0;
+                            if (count === 0) return null;
+                            
+                            let label = "Common";
+                            let color = "text-gray-400";
+                            if (diff === 2) { label = "Uncommon"; color = "text-green-400"; }
+                            if (diff === 3) { label = "Rare"; color = "text-blue-400"; }
+                            if (diff === 4) { label = "Epic"; color = "text-purple-400"; }
+                            if (diff === 5) { label = "Legendary"; color = "text-orange-400"; }
+
+                            return (
+                                <div key={diff} className="flex justify-between text-xs">
+                                    <span className={`${color} font-medium`}>{label}</span>
+                                    <span className="text-gray-300">{count}</span>
                                 </div>
-                            ))}
+                            );
+                        })}
+                    </div>
+                    
+                    {user.stats?.hardest_quest && (
+                        <div className="mt-3 pt-2 border-t border-gray-800">
+                            <div className="text-[10px] text-gray-500 uppercase text-center mb-1">Hardest Completed</div>
+                            <div className="text-xs text-center font-medium text-orange-400 truncate px-2">
+                                {user.stats.hardest_quest.title} <span className="text-gray-500 font-normal">({user.stats.hardest_quest.xp} XP)</span>
+                            </div>
                         </div>
-                    ) : (
-                        <div className="text-xs text-gray-600 text-center italic">No feats recorded yet.</div>
                     )}
                 </div>
             </div>

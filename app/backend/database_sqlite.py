@@ -405,12 +405,27 @@ class SqliteDatabase:
             ).group_by(QuestDB.difficulty).all()
             
             difficulty_breakdown = {diff: count for diff, count in difficulty_counts}
+
+            # Hardest completed quest
+            hardest_quest = session.query(QuestDB).filter(
+                QuestDB.user_id == user_id,
+                QuestDB.status == 'completed'
+            ).order_by(QuestDB.difficulty.desc(), QuestDB.xp_reward.desc()).first()
+
+            hardest_quest_data = None
+            if hardest_quest:
+                hardest_quest_data = {
+                    "title": hardest_quest.title,
+                    "xp": hardest_quest.xp_reward,
+                    "difficulty": hardest_quest.difficulty
+                }
             
             return {
                 "quests_active": quests_active,
                 "quests_completed": quests_completed,
                 "achievements_unlocked": achievements_unlocked,
-                "quest_difficulty_breakdown": difficulty_breakdown
+                "quest_difficulty_breakdown": difficulty_breakdown,
+                "hardest_quest": hardest_quest_data
             }
         finally:
             session.close()
