@@ -23,7 +23,20 @@ const CharacterCard: React.FC<CharacterCardProps> = ({
     // Calculate Character Level (min of all dimension levels, or just user.level)
     // For now, use user.level or 1
     const level = user.level || 1;
-    const { className: playerClass, description: classDescription } = getPlayerClass(user);
+    
+    // Calculate Rank based on highest difficulty quest completed
+    const getPlayerRank = () => {
+        const breakdown = user.stats?.quest_difficulty_breakdown || {};
+        if ((breakdown[5] || 0) > 0) return "Legendary";
+        if ((breakdown[4] || 0) > 0) return "Epic";
+        if ((breakdown[3] || 0) > 0) return "Rare";
+        if ((breakdown[2] || 0) > 0) return "Uncommon";
+        if ((user.stats?.quests_completed || 0) > 0) return "Common";
+        return "Novice";
+    };
+
+    const playerRank = getPlayerRank();
+    const { description: classDescription } = getPlayerClass(user);
     const publicProfileUrl = `${window.location.origin}/public/profile/${user.username}`;
     
     const handleFlip = (e: React.MouseEvent) => {
@@ -167,52 +180,37 @@ const CharacterCard: React.FC<CharacterCardProps> = ({
         >
             {/* Header */}
             <div className="bg-gradient-to-b from-orange-800 to-orange-900 p-4 border-b-4 border-orange-700 relative z-10 text-center">
-                <h3 className="font-['Cinzel'] font-bold text-2xl text-white drop-shadow-md">
-                        {playerClass.toUpperCase()}
+                <h3 className="font-['Cinzel'] font-bold text-xl text-white drop-shadow-md truncate">
+                        {(user.display_name || user.username).toUpperCase()}
                 </h3>
             </div>
 
             {/* Body */}
-            <div className="flex-1 relative bg-gray-800 p-4 flex flex-col items-center">
+            <div className="flex-1 relative bg-gray-800 p-2 flex flex-col items-center justify-center min-h-0">
                 {/* Avatar Placeholder */}
-                <div className="w-32 h-32 rounded-full bg-gray-700 border-4 border-orange-500 mb-4 flex items-center justify-center overflow-hidden relative z-10">
-                    <span className="text-4xl">👤</span>
+                <div className="w-24 h-24 rounded-full bg-gray-700 border-4 border-orange-500 mb-3 flex items-center justify-center overflow-hidden relative z-10 shrink-0">
+                    <span className="text-3xl">👤</span>
                 </div>
                 
-                <h2 className="text-xl font-bold text-orange-400 mb-1 relative z-10">{user.display_name || user.username}</h2>
-                <div className="text-xs text-gray-400 uppercase tracking-widest mb-4 relative z-10">Level {level}</div>
-                
-                <div className="w-full bg-gray-900 rounded-full h-4 border border-gray-700 relative overflow-hidden z-10">
-                    <div 
-                        className="absolute top-0 left-0 h-full bg-orange-600"
-                        style={{ width: `${(level % 1) * 100}%` }} // Placeholder for progress to next level
-                    ></div>
-                    <div className="absolute inset-0 flex items-center justify-center text-[8px] font-bold tracking-wider text-white/80">
-                        PROGRESS TO NEXT LEVEL
-                    </div>
+                <div className="text-sm font-bold text-orange-400 uppercase tracking-widest mb-4 relative z-10">
+                    Level {level} {playerRank} Player
                 </div>
-
-                {/* QR Code Overlay */}
-                <div className="absolute bottom-2 right-2 opacity-50 hover:opacity-100 transition-opacity z-0">
-                    <div className="bg-white p-1 rounded">
-                        <QRCodeSVG value={publicProfileUrl} size={40} />
-                    </div>
+                
+                {/* QR Code Centered */}
+                <div className="bg-white p-2 rounded relative z-10 shadow-lg shrink-0">
+                    <QRCodeSVG value={publicProfileUrl} size={70} />
                 </div>
             </div>
 
             {/* Footer */}
-            <div className="bg-gray-900 p-4 border-t-4 border-orange-900 relative z-10 flex justify-between items-center">
+            <div className="bg-gray-900 p-4 border-t-4 border-orange-900 relative z-10 flex justify-around items-center">
                 <div className="text-center">
-                    <div className="text-xs text-gray-500 uppercase">Quests</div>
+                    <div className="text-xs text-gray-500 uppercase">Quests Completed</div>
                     <div className="text-lg font-bold text-white">{user.stats?.quests_completed || 0}</div>
                 </div>
                 <div className="text-center">
                     <div className="text-xs text-gray-500 uppercase">Total XP</div>
                     <div className="text-lg font-bold text-orange-500">{user.stats?.total_xp || 0}</div>
-                </div>
-                <div className="text-center">
-                    <div className="text-xs text-gray-500 uppercase">Achiev.</div>
-                    <div className="text-lg font-bold text-white">{user.stats?.achievements_unlocked || 0}</div>
                 </div>
             </div>
         </div>

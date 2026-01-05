@@ -205,14 +205,16 @@ const Profile: React.FC = () => {
     <div className="space-y-6">
       {/* Character Card Showcase */}
       <div className="flex justify-center mb-8">
-          <div className="flex flex-col items-center">
+          <div className="flex flex-col items-center group">
             <CharacterCard user={profile} achievements={achievements} />
-            <CardActionBar 
-                type="character"
-                id={profile.username}
-                showStatusActions={false}
-                showDelete={false}
-            />
+            <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                <CardActionBar 
+                    type="character"
+                    id={profile.username}
+                    showStatusActions={false}
+                    showDelete={false}
+                />
+            </div>
           </div>
       </div>
 
