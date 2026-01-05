@@ -70,17 +70,16 @@ const CharacterCard: React.FC<CharacterCardProps> = ({
             className={`w-full h-full rounded-2xl overflow-hidden bg-gray-900 border-[12px] border-gray-800 shadow-2xl flex flex-col relative cursor-pointer`}
         >
             {/* Header */}
-            <div className="bg-gray-800 p-3 border-b-4 border-gray-700 text-center shrink-0">
+            <div className="bg-gray-800 p-2 border-b-4 border-gray-700 text-center shrink-0">
                 <h3 className="font-['Cinzel'] font-black text-lg text-gray-300 tracking-widest">PLAYER HIGHLIGHTS</h3>
             </div>
 
             {/* Body */}
-            <div className="flex-1 flex flex-col items-center justify-start p-2 relative space-y-2 min-h-0 overflow-y-auto">
+            <div className="flex-1 flex flex-col items-center justify-between p-3 relative min-h-0 overflow-y-auto">
                 
                 {/* Current Build Section */}
                 <div className="w-full flex flex-col items-center shrink-0">
-                    <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider text-center border-b border-gray-700 pb-1 w-full mb-1">Current Build</h4>
-                    <div className="w-24 h-24 relative my-1">
+                    <div className="w-40 h-40 relative mt-8 mb-2">
                         <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible">
                             {/* Background Grid */}
                             {[0.2, 0.4, 0.6, 0.8, 1].map(scale => (
@@ -117,7 +116,7 @@ const CharacterCard: React.FC<CharacterCardProps> = ({
                         {/* Labels */}
                         {dimensions.map((dim, i) => {
                             const angle = (Math.PI * 2 * i) / dimensions.length - Math.PI / 2;
-                            const radius = 60; // Push labels out
+                            const radius = 65; // Push labels out
                             const x = 50 + Math.cos(angle) * radius;
                             const y = 50 + Math.sin(angle) * radius;
                             const Icon = getDimensionIcon(dim);
@@ -126,7 +125,7 @@ const CharacterCard: React.FC<CharacterCardProps> = ({
                             return (
                                 <div 
                                     key={dim}
-                                    className={`absolute flex items-center justify-center w-4 h-4 rounded-full bg-gray-800 border border-gray-700 ${color}`}
+                                    className={`absolute flex items-center justify-center w-6 h-6 rounded-full bg-gray-800 border border-gray-700 ${color}`}
                                     style={{ 
                                         left: `${x}%`, 
                                         top: `${y}%`, 
@@ -134,7 +133,7 @@ const CharacterCard: React.FC<CharacterCardProps> = ({
                                     }}
                                     title={dim}
                                 >
-                                    <Icon size={8} />
+                                    <Icon size={12} />
                                 </div>
                             );
                         })}
@@ -143,7 +142,7 @@ const CharacterCard: React.FC<CharacterCardProps> = ({
 
                 {/* Quest Stats */}
                 <div className="w-full space-y-2 shrink-0">
-                    <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider text-center border-b border-gray-700 pb-1">Quest Stats</h4>
+                    <div className="w-full border-b border-gray-700"></div>
                     <div className="space-y-1 px-2">
                         {[1, 2, 3, 4, 5].map(diff => {
                             const count = user.stats?.quest_difficulty_breakdown?.[diff] || 0;
@@ -164,20 +163,11 @@ const CharacterCard: React.FC<CharacterCardProps> = ({
                             );
                         })}
                     </div>
-                    
-                    {user.stats?.hardest_quest && (
-                        <div className="mt-3 pt-2 border-t border-gray-800">
-                            <div className="text-[10px] text-gray-500 uppercase text-center mb-1">Hardest Completed</div>
-                            <div className="text-xs text-center font-medium text-orange-400 truncate px-2">
-                                {user.stats.hardest_quest.title} <span className="text-gray-500 font-normal">({user.stats.hardest_quest.xp} XP)</span>
-                            </div>
-                        </div>
-                    )}
                 </div>
             </div>
             
             {/* Footer */}
-            <div className="bg-gray-800 p-3 border-t-4 border-gray-700 text-center">
+            <div className="bg-gray-800 p-2 border-t-4 border-gray-700 text-center">
                 <div className="text-[10px] text-gray-400 italic">
                     "{classDescription}"
                 </div>
