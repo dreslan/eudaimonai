@@ -21,8 +21,10 @@ const NewAchievement: React.FC = () => {
   useEffect(() => {
     const fetchQuests = async () => {
         try {
-            const res = await axios.get('http://localhost:8000/quests');
-            setQuests(res.data.filter((q: Quest) => q.status !== 'completed'));
+            const res = await axios.get('http://localhost:8000/quests', {
+                params: { status: 'active', page_size: 100 }
+            });
+            setQuests(res.data.items);
         } catch (error) {
             console.error("Error fetching quests", error);
         }

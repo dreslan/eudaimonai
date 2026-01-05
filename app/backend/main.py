@@ -1,8 +1,8 @@
-from fastapi import FastAPI, HTTPException, Depends, status
+from fastapi import FastAPI, HTTPException, Depends, status, Query
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from fastapi.middleware.cors import CORSMiddleware
 from typing import List, Optional
-from models import Quest, QuestCreate, QuestUpdate, Achievement, AchievementCreate, AchievementUpdate, BulkVisibilityUpdate, User, UserCreate, UserUpdate, Token, UserInDB
+from models import Quest, QuestCreate, QuestUpdate, Achievement, AchievementCreate, AchievementUpdate, BulkVisibilityUpdate, User, UserCreate, UserUpdate, Token, UserInDB, PaginatedQuests, PaginatedAchievements
 from database_sqlite import db
 import random
 import json
@@ -70,9 +70,22 @@ def register_user(user: UserCreate):
 def read_root():
     return {"message": "Welcome to EudaimonAI API"}
 
-@app.get("/quests", response_model=List[Quest])
-def get_quests(current_user: UserInDB = Depends(get_current_user)):
-    return db.get_quests(user_id=current_user.id)
+@app.get("/quests", response_model=PaginatedQuests)
+def get_quests(
+    page: int = Query(1, ge=1), 
+    page_size: int = Query(20, ge=1, le=100), 
+    status: Optional[str] = Query(None),
+    search: Optional[str] = Query(None),
+    current_user: UserInDB = Depends(get_current_user)
+):
+    skip = (page - 1) * page_size
+    result = db.get_quests_paginated(user_id=current_user.id, skip=skip, limit=page_size, status=status, search=search)
+    return {
+        "items": result["items"],
+        "total": result["total"],
+        "page": page,
+        "page_size": page_size
+    }
 
 @app.post("/quests", response_model=Quest)
 def create_quest(quest: QuestCreate, current_user: UserInDB = Depends(get_current_user)):
@@ -91,11 +104,14 @@ def bulk_update_achievement_visibility(update_data: BulkVisibilityUpdate, curren
 
 @app.get("/quests/{quest_id}", response_model=Quest)
 def get_quest(quest_id: str, current_user: UserInDB = Depends(get_current_user)):
-    quests = db.get_quests(user_id=current_user.id)
-    for q in quests:
-        if q['id'] == quest_id:
-            return q
-    raise HTTPException(status_code=404, detail="Quest not found")
+    quest = db.get_quest_by_id(quest_id)
+    if not quest or quest['user_id'] != current_user.id:
+        raise HTTPException(status_code=404, detail="Quest not found")
+    return quest
+
+@app.get("/quests/{quest_id}/achievements", response_model=List[Achievement])
+def get_quest_achievements(quest_id: str, current_user: UserInDB = Depends(get_current_user)):
+    return db.get_achievements_by_quest(current_user.id, quest_id)
 
 @app.patch("/quests/{quest_id}", response_model=Quest)
 def update_quest(quest_id: str, update_data: QuestUpdate, current_user: UserInDB = Depends(get_current_user)):
@@ -232,9 +248,21 @@ def delete_quest(quest_id: str, current_user: UserInDB = Depends(get_current_use
         return {"message": "Quest deleted successfully"}
     raise HTTPException(status_code=404, detail="Quest not found")
 
-@app.get("/achievements", response_model=List[Achievement])
-def get_achievements(current_user: UserInDB = Depends(get_current_user)):
-    return db.get_achievements(user_id=current_user.id)
+@app.get("/achievements", response_model=PaginatedAchievements)
+def get_achievements(
+    page: int = Query(1, ge=1), 
+    page_size: int = Query(20, ge=1, le=100), 
+    search: Optional[str] = Query(None),
+    current_user: UserInDB = Depends(get_current_user)
+):
+    skip = (page - 1) * page_size
+    result = db.get_achievements_paginated(user_id=current_user.id, skip=skip, limit=page_size, search=search)
+    return {
+        "items": result["items"],
+        "total": result["total"],
+        "page": page,
+        "page_size": page_size
+    }
 
 @app.post("/achievements", response_model=Achievement)
 def create_achievement(achievement: AchievementCreate, current_user: UserInDB = Depends(get_current_user)):
@@ -338,9 +366,8 @@ def update_achievement(achievement_id: str, update_data: AchievementUpdate, curr
 
 @app.get("/profile")
 def get_profile(current_user: UserInDB = Depends(get_current_user)):
-    quests = db.get_quests(user_id=current_user.id)
-    achievements = db.get_achievements(user_id=current_user.id)
-    completed_quests = [q for q in quests if q['status'] == 'completed']
+    stats_summary = db.get_user_stats_summary(current_user.id)
+    recent_achievements = db.get_recent_achievements(current_user.id)
     
     # Calculate Character Level
     character_level = 1
@@ -353,11 +380,7 @@ def get_profile(current_user: UserInDB = Depends(get_current_user)):
     # Calculate Total XP
     total_xp = sum(s.total_xp for s in current_user.dimension_stats) if current_user.dimension_stats else 0
     
-    # Calculate Difficulty Breakdown
-    difficulty_breakdown = {}
-    for q in completed_quests:
-        diff = q.get('difficulty', 1)
-        difficulty_breakdown[diff] = difficulty_breakdown.get(diff, 0) + 1
+    stats_summary["total_xp"] = total_xp
 
     return {
         "id": current_user.id,
@@ -365,15 +388,9 @@ def get_profile(current_user: UserInDB = Depends(get_current_user)):
         "display_name": current_user.display_name,
         "openai_api_key": current_user.openai_api_key,
         "level": character_level,
-        "stats": {
-            "quests_active": len([q for q in quests if q['status'] == 'active']),
-            "quests_completed": len(completed_quests),
-            "achievements_unlocked": len(achievements),
-            "total_xp": total_xp,
-            "quest_difficulty_breakdown": difficulty_breakdown
-        },
+        "stats": stats_summary,
         "dimension_stats": current_user.dimension_stats,
-        "recent_achievements": achievements[-5:]
+        "recent_achievements": recent_achievements
     }
 
 @app.put("/profile", response_model=User)

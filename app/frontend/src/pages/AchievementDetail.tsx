@@ -41,8 +41,10 @@ const AchievementDetail: React.FC = () => {
         } else if (!isPublic) {
             // Fetch available quests for linking
             try {
-                const questsRes = await axios.get('http://localhost:8000/quests');
-                setAvailableQuests(questsRes.data.filter((q: Quest) => q.status !== 'completed'));
+                const questsRes = await axios.get('http://localhost:8000/quests', {
+                    params: { status: 'active', page_size: 100 }
+                });
+                setAvailableQuests(questsRes.data.items);
             } catch (qError) {
                 console.log("Could not fetch quests list", qError);
             }

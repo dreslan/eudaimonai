@@ -33,6 +33,12 @@ class Quest(QuestBase):
     progress: int = 0
     user_id: str
 
+class PaginatedQuests(BaseModel):
+    items: List[Quest]
+    total: int
+    page: int
+    page_size: int
+
 class UserDimensionStats(BaseModel):
     dimension: str
     total_xp: int
@@ -66,6 +72,13 @@ class BulkVisibilityUpdate(BaseModel):
 class Achievement(AchievementBase):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     user_id: str
+    quest_title: Optional[str] = None
+
+class PaginatedAchievements(BaseModel):
+    items: List[Achievement]
+    total: int
+    page: int
+    page_size: int
 
 class UserBase(BaseModel):
     username: str

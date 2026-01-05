@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, func, or_
 from sqlalchemy.orm import sessionmaker, Session
 from sql_models import Base, UserDB, QuestDB, AchievementDB, UserDimensionStatsDB
 from models import Quest, Achievement, UserInDB, UserDimensionStats
@@ -41,6 +41,32 @@ class SqliteDatabase:
         finally:
             session.close()
 
+    def get_quests_paginated(self, user_id: str, skip: int = 0, limit: int = 20, status: Optional[str] = None, search: Optional[str] = None) -> Dict[str, Any]:
+        session = self.SessionLocal()
+        try:
+            query = session.query(QuestDB).filter(QuestDB.user_id == user_id)
+            if status:
+                query = query.filter(QuestDB.status == status)
+            
+            if search:
+                search_term = f"%{search}%"
+                query = query.filter(or_(
+                    QuestDB.title.ilike(search_term),
+                    QuestDB.dimension.ilike(search_term)
+                ))
+            
+            total = query.count()
+            quests = query.offset(skip).limit(limit).all()
+            
+            results = []
+            for q in quests:
+                q_dict = self._to_dict(q)
+                q_dict['tags'] = json.loads(q_dict['tags'])
+                results.append(q_dict)
+            return {"items": results, "total": total}
+        finally:
+            session.close()
+
     def get_quest_by_id(self, quest_id: str) -> Optional[Dict]:
         session = self.SessionLocal()
         try:
@@ -78,6 +104,40 @@ class SqliteDatabase:
         finally:
             session.close()
 
+    def update_quest(self, quest: Quest) -> Optional[Dict]:
+        session = self.SessionLocal()
+        try:
+            q_db = session.query(QuestDB).filter(QuestDB.id == quest.id).first()
+            if q_db:
+                q_db.title = quest.title
+                q_db.dimension = quest.dimension
+                q_db.status = quest.status
+                q_db.tags = json.dumps(quest.tags)
+                q_db.victory_condition = quest.victory_condition
+                q_db.is_hidden = quest.is_hidden
+                q_db.due_date = quest.due_date
+                q_db.progress = quest.progress
+                q_db.difficulty = quest.difficulty
+                q_db.xp_reward = quest.xp_reward
+                
+                session.commit()
+                session.refresh(q_db)
+                
+                q_dict = self._to_dict(q_db)
+                q_dict['tags'] = json.loads(q_dict['tags'])
+                return q_dict
+            return None
+        finally:
+            session.close()
+
+    def get_recent_achievements(self, user_id: str, limit: int = 5) -> List[Dict]:
+        session = self.SessionLocal()
+        try:
+            achievements = session.query(AchievementDB).filter(AchievementDB.user_id == user_id).order_by(AchievementDB.date_completed.desc()).limit(limit).all()
+            return [self._to_dict(a) for a in achievements]
+        finally:
+            session.close()
+
     def get_achievements(self, user_id: Optional[str] = None) -> List[Dict]:
         session = self.SessionLocal()
         try:
@@ -86,6 +146,44 @@ class SqliteDatabase:
                 query = query.filter(AchievementDB.user_id == user_id)
             achievements = query.all()
             return [self._to_dict(a) for a in achievements]
+        finally:
+            session.close()
+
+    def get_achievements_by_quest(self, user_id: str, quest_id: str) -> List[Dict]:
+        session = self.SessionLocal()
+        try:
+            achievements = session.query(AchievementDB).filter(
+                AchievementDB.user_id == user_id,
+                AchievementDB.quest_id == quest_id
+            ).all()
+            return [self._to_dict(a) for a in achievements]
+        finally:
+            session.close()
+
+    def get_achievements_paginated(self, user_id: str, skip: int = 0, limit: int = 20, search: Optional[str] = None) -> Dict[str, Any]:
+        session = self.SessionLocal()
+        try:
+            query = session.query(AchievementDB, QuestDB.title.label("quest_title"))\
+                .outerjoin(QuestDB, AchievementDB.quest_id == QuestDB.id)\
+                .filter(AchievementDB.user_id == user_id)
+            
+            if search:
+                search_term = f"%{search}%"
+                query = query.filter(or_(
+                    AchievementDB.title.ilike(search_term),
+                    AchievementDB.context.ilike(search_term)
+                ))
+
+            total = query.count()
+            achievements = query.order_by(AchievementDB.date_completed.desc()).offset(skip).limit(limit).all()
+            
+            results = []
+            for ach, q_title in achievements:
+                ach_dict = self._to_dict(ach)
+                ach_dict['quest_title'] = q_title
+                results.append(ach_dict)
+                
+            return {"items": results, "total": total}
         finally:
             session.close()
 
@@ -266,6 +364,30 @@ class SqliteDatabase:
             session.query(AchievementDB).filter(AchievementDB.user_id == user_id).delete()
             session.query(UserDimensionStatsDB).filter(UserDimensionStatsDB.user_id == user_id).delete()
             session.commit()
+        finally:
+            session.close()
+
+    def get_user_stats_summary(self, user_id: str) -> Dict[str, Any]:
+        session = self.SessionLocal()
+        try:
+            quests_active = session.query(QuestDB).filter(QuestDB.user_id == user_id, QuestDB.status == 'active').count()
+            quests_completed = session.query(QuestDB).filter(QuestDB.user_id == user_id, QuestDB.status == 'completed').count()
+            achievements_unlocked = session.query(AchievementDB).filter(AchievementDB.user_id == user_id).count()
+            
+            # Difficulty breakdown
+            difficulty_counts = session.query(QuestDB.difficulty, func.count(QuestDB.id)).filter(
+                QuestDB.user_id == user_id, 
+                QuestDB.status == 'completed'
+            ).group_by(QuestDB.difficulty).all()
+            
+            difficulty_breakdown = {diff: count for diff, count in difficulty_counts}
+            
+            return {
+                "quests_active": quests_active,
+                "quests_completed": quests_completed,
+                "achievements_unlocked": achievements_unlocked,
+                "quest_difficulty_breakdown": difficulty_breakdown
+            }
         finally:
             session.close()
 

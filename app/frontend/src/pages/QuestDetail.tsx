@@ -35,8 +35,8 @@ const QuestDetail: React.FC = () => {
             const questRes = await axios.get(`http://localhost:8000/quests/${id}`);
             questData = questRes.data;
             
-            const achievementsRes = await axios.get('http://localhost:8000/achievements');
-            linked = achievementsRes.data.filter((a: Achievement) => a.quest_id === id);
+            const achievementsRes = await axios.get(`http://localhost:8000/quests/${id}/achievements`);
+            linked = achievementsRes.data;
         }
         
         setQuest(questData);

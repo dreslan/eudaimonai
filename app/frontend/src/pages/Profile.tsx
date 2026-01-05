@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
 import type { Achievement, Quest, User, Status } from '../types';
-import { LayoutGrid, List, Search, Skull, Edit2, Check, Share2, ExternalLink, X, Circle, Archive, History, Trophy, Copy } from 'lucide-react';
+import { LayoutGrid, List, Search, Skull, Edit2, Check, Share2, ExternalLink, X, Circle, Archive, History, Trophy, Copy, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import QuestCard from '../components/QuestCard';
 import AchievementCard from '../components/AchievementCard';
@@ -23,35 +23,93 @@ const Profile: React.FC = () => {
   const [displayName, setDisplayName] = useState('');
   const [showShareModal, setShowShareModal] = useState(false);
 
+  // Pagination state
+  const [questsPage, setQuestsPage] = useState(1);
+  const [questsTotal, setQuestsTotal] = useState(0);
+  const [achievementsPage, setAchievementsPage] = useState(1);
+  const [achievementsTotal, setAchievementsTotal] = useState(0);
+  const pageSize = 12;
+
   const baseUrl = window.location.origin;
   const publicProfileUrl = `${baseUrl}/public/profile/${profile?.username}`;
 
-  useEffect(() => {
-    const fetchData = async () => {
+  const fetchProfile = async () => {
       try {
-        const [profileRes, questsRes, achievementsRes] = await Promise.all([
-            axios.get('http://localhost:8000/profile'),
-            axios.get('http://localhost:8000/quests'),
-            axios.get('http://localhost:8000/achievements')
-        ]);
-        setProfile(profileRes.data);
-        setDisplayName(profileRes.data.display_name || profileRes.data.username);
-        setQuests(questsRes.data);
-        setAchievements(achievementsRes.data);
-        
-        // Auto-switch to backlog if no active quests
-        const active = questsRes.data.filter((q: Quest) => q.status === 'active');
-        if (active.length === 0 && questsRes.data.length > 0) {
-            setActiveTab('backlog');
-        }
+          const res = await axios.get('http://localhost:8000/profile');
+          setProfile(res.data);
+          setDisplayName(res.data.display_name || res.data.username);
       } catch (error) {
-        console.error("Error fetching data", error);
-      } finally {
-        setLoading(false);
+          console.error("Error fetching profile", error);
       }
-    };
-    fetchData();
+  };
+
+  const fetchQuests = async () => {
+      try {
+          const params: any = { page: questsPage, page_size: pageSize };
+          if (activeTab !== 'all' && activeTab !== 'achievements') {
+              params.status = activeTab;
+          }
+          if (searchTerm) {
+              params.search = searchTerm;
+          }
+          const res = await axios.get('http://localhost:8000/quests', { params });
+          setQuests(res.data.items);
+          setQuestsTotal(res.data.total);
+      } catch (error) {
+          console.error("Error fetching quests", error);
+      }
+  };
+
+  const fetchAchievements = async () => {
+      try {
+          const params: any = { page: achievementsPage, page_size: pageSize };
+          if (searchTerm) {
+              params.search = searchTerm;
+          }
+          const res = await axios.get('http://localhost:8000/achievements', { params });
+          setAchievements(res.data.items);
+          setAchievementsTotal(res.data.total);
+      } catch (error) {
+          console.error("Error fetching achievements", error);
+      }
+  };
+
+  useEffect(() => {
+      const init = async () => {
+          setLoading(true);
+          await fetchProfile();
+          setLoading(false);
+      };
+      init();
   }, []);
+
+  // Debounce search
+  useEffect(() => {
+      const timer = setTimeout(() => {
+          if (activeTab === 'achievements') {
+              setAchievementsPage(1);
+              fetchAchievements();
+          } else {
+              setQuestsPage(1);
+              fetchQuests();
+          }
+      }, 500);
+      return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  useEffect(() => {
+      if (activeTab === 'achievements') {
+          fetchAchievements();
+      } else {
+          fetchQuests();
+      }
+  }, [activeTab, questsPage, achievementsPage]);
+
+  const handleTabChange = (tab: Status | 'all' | 'achievements') => {
+      setActiveTab(tab);
+      setQuestsPage(1);
+      setAchievementsPage(1);
+  };
 
   const handleDeleteQuest = async (questId: string) => {
       if (!confirm('Are you sure you want to delete this quest?')) return;
@@ -114,25 +172,23 @@ const Profile: React.FC = () => {
 
   if (loading || !profile) return <div className="text-center py-10 text-gray-500 dark:text-gray-400">Loading profile...</div>;
 
-  const filteredQuests = quests.filter(q => {
-    const matchesTab = activeTab === 'all' ? true : q.status === activeTab;
-    const matchesSearch = q.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                          (q.dimension || '').toLowerCase().includes(searchTerm.toLowerCase());
-    return matchesTab && matchesSearch;
-  });
-
-  const filteredAchievements = achievements.filter(a => 
-    a.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    a.context.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Server-side filtering is now used, so we use the raw state
+  const filteredQuests = quests;
+  const filteredAchievements = achievements;
 
   const tabs = [
-      { id: 'active', label: 'Active', icon: Circle, color: 'text-orange-500', count: quests.filter(q => q.status === 'active').length },
-      { id: 'backlog', label: 'Backlog', icon: Archive, color: 'text-gray-500', count: quests.filter(q => q.status === 'backlog').length },
-      { id: 'completed', label: 'History', icon: History, color: 'text-green-500', count: quests.filter(q => q.status === 'completed').length },
-      { id: 'achievements', label: 'Achievements', icon: Trophy, color: 'text-yellow-500', count: achievements.length },
-      { id: 'all', label: 'All Quests', icon: LayoutGrid, color: 'text-purple-500', count: quests.length },
+      { id: 'active', label: 'Active', icon: Circle, color: 'text-orange-500', count: profile?.stats?.quests_active },
+      { id: 'backlog', label: 'Backlog', icon: Archive, color: 'text-gray-500', count: undefined },
+      { id: 'completed', label: 'History', icon: History, color: 'text-green-500', count: profile?.stats?.quests_completed },
+      { id: 'achievements', label: 'Achievements', icon: Trophy, color: 'text-yellow-500', count: profile?.stats?.achievements_unlocked },
+      { id: 'all', label: 'All Quests', icon: LayoutGrid, color: 'text-purple-500', count: undefined },
   ];
+
+  const totalPages = activeTab === 'achievements' 
+      ? Math.ceil(achievementsTotal / pageSize) 
+      : Math.ceil(questsTotal / pageSize);
+  const currentPage = activeTab === 'achievements' ? achievementsPage : questsPage;
+  const setPage = activeTab === 'achievements' ? setAchievementsPage : setQuestsPage;
 
   return (
     <div className="space-y-6">
@@ -348,7 +404,7 @@ const Profile: React.FC = () => {
                     return (
                         <button
                             key={tab.id}
-                            onClick={() => setActiveTab(tab.id as any)}
+                            onClick={() => handleTabChange(tab.id as any)}
                             className={`
                                 flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-all
                                 ${isActive 
@@ -359,15 +415,17 @@ const Profile: React.FC = () => {
                         >
                             <Icon className={`w-4 h-4 ${isActive ? tab.color : ''}`} />
                             <span>{tab.label}</span>
-                            <span className={`
-                                text-xs px-1.5 py-0.5 rounded-full
-                                ${isActive 
-                                    ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white' 
-                                    : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400'
-                                }
-                            `}>
-                                {tab.count}
-                            </span>
+                            {tab.count !== undefined && (
+                                <span className={`
+                                    text-xs px-1.5 py-0.5 rounded-full
+                                    ${isActive 
+                                        ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white' 
+                                        : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400'
+                                    }
+                                `}>
+                                    {tab.count}
+                                </span>
+                            )}
                         </button>
                     );
                 })}
@@ -428,6 +486,7 @@ const Profile: React.FC = () => {
                                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Achievement</th>
                                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Date</th>
                                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Context</th>
+                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Linked Quest</th>
                             </tr>
                         </thead>
                         <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
@@ -449,6 +508,15 @@ const Profile: React.FC = () => {
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                                         {achievement.context}
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                                        {achievement.quest_title ? (
+                                            <Link to={`/quests/${achievement.quest_id}`} className="text-orange-600 hover:underline dark:text-orange-400">
+                                                {achievement.quest_title}
+                                            </Link>
+                                        ) : (
+                                            <span className="text-gray-400 italic">None</span>
+                                        )}
                                     </td>
                                 </tr>
                             ))}
@@ -485,6 +553,8 @@ const Profile: React.FC = () => {
                             <tr>
                                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Quest</th>
                                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Dimension</th>
+                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Rank</th>
+                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">XP</th>
                                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
                                 <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
                             </tr>
@@ -504,6 +574,25 @@ const Profile: React.FC = () => {
                                         <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
                                             {quest.dimension}
                                         </span>
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap">
+                                        {(() => {
+                                            const diff = quest.difficulty || 1;
+                                            let label = "Common";
+                                            let color = "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300";
+                                            if (diff === 2) { label = "Uncommon"; color = "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300"; }
+                                            if (diff === 3) { label = "Rare"; color = "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300"; }
+                                            if (diff === 4) { label = "Epic"; color = "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300"; }
+                                            if (diff === 5) { label = "Legendary"; color = "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300"; }
+                                            return (
+                                                <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${color}`}>
+                                                    {label}
+                                                </span>
+                                            );
+                                        })()}
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                                        {quest.xp_reward || 10} XP
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
@@ -532,6 +621,29 @@ const Profile: React.FC = () => {
                     </table>
                 </div>
             )
+        )}
+
+        {/* Pagination Controls */}
+        {totalPages > 1 && (
+            <div className="flex justify-center items-center gap-4 mt-8 pt-4 border-t dark:border-gray-700">
+                <button 
+                    disabled={currentPage === 1}
+                    onClick={() => setPage(p => Math.max(1, p - 1))}
+                    className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed text-gray-600 dark:text-gray-400"
+                >
+                    <ChevronLeft className="w-5 h-5" />
+                </button>
+                <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
+                    Page {currentPage} of {totalPages}
+                </span>
+                <button 
+                    disabled={currentPage >= totalPages}
+                    onClick={() => setPage(p => p + 1)}
+                    className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed text-gray-600 dark:text-gray-400"
+                >
+                    <ChevronRight className="w-5 h-5" />
+                </button>
+            </div>
         )}
       </div>
       )}

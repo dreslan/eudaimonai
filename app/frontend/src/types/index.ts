@@ -62,6 +62,7 @@ export interface Achievement {
     ai_description?: string;
     ai_reward?: string;
     quest_id?: string;
+    quest_title?: string;
     is_hidden?: boolean;
 }
 
@@ -75,4 +76,11 @@ export interface AchievementCreate {
     ai_reward?: string;
     quest_id?: string;
     use_genai?: boolean;
+}
+
+export interface PaginatedResponse<T> {
+    items: T[];
+    total: number;
+    page: number;
+    page_size: number;
 }
